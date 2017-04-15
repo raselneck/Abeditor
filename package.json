@@ -1,0 +1,44 @@
+{
+  "name": "abeditor",
+  "version": "0.0.1",
+  "description": "The abetting editor",
+  "main": "./server/server.js",
+  "scripts": {
+    "nodemon": "nodemon --watch ./server ./server/server.js",
+    "start": "node ./server/server.js",
+    "pretest": "eslint ./server --fix",
+    "test": "echo Tests complete!"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TheCodeInside/Abeditor.git"
+  },
+  "author": "Michael Cohen, Richard Selneck",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/TheCodeInside/Abeditor/issues"
+  },
+  "homepage": "https://github.com/TheCodeInside/Abeditor#readme",
+  "devDependencies": {
+    "babel-cli": "^6.24.1",
+    "babel-preset-env": "^1.4.0",
+    "babel-preset-react": "^6.24.1",
+    "concurrently": "^3.4.0",
+    "eslint": "^3.19.0",
+    "eslint-config-airbnb": "^14.1.0",
+    "eslint-plugin-import": "^2.2.0",
+    "nodemon": "^1.11.0"
+  },
+  "dependencies": {
+    "body-parser": "^1.17.1",
+    "compression": "^1.6.2",
+    "connect-redis": "^3.2.0",
+    "cookie-parser": "^1.4.3",
+    "csurf": "^1.9.0",
+    "express": "^4.15.2",
+    "express-session": "^1.15.2",
+    "helmet": "^3.5.0",
+    "mongoose": "^4.9.4",
+    "underscore": "^1.8.3"
+  }
+}
