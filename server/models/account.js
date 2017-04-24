@@ -52,7 +52,7 @@ const AccountSchema = new mongoose.Schema({
 // Helper method for converting an account to its session equivalent
 AccountSchema.statics.toSession = doc => ({
   username: doc.username,
-  /*email: doc.email,*/
+  /* email: doc.email,*/
   _id: doc._id,
 });
 
@@ -60,7 +60,8 @@ AccountSchema.statics.toSession = doc => ({
 const validatePassword = (doc, password, callback) => {
   const pass = doc.password;
 
-  return crypto.pbkdf2(password, doc.salt, cryptIterations, cryptKeyLength, cryptAlgorithm, (err, hash) => {
+  return crypto.pbkdf2(password, doc.salt, cryptIterations, cryptKeyLength, cryptAlgorithm,
+  (err, hash) => {
     const hashString = hash.toString('hex');
     if (hashString !== pass) {
       return callback(false);

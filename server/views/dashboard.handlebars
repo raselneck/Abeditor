@@ -55,7 +55,7 @@
     </div>
 
     <div class="container">
-      <!-- TODO - Put the editor here -->
+      <div id="editor"></div>
     </div>
 
     <div class="container">
@@ -69,6 +69,16 @@
     <script type="text/javascript" src="/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="/js/react.min.js"></script>
     <script type="text/javascript" src="/js/react-dom.min.js"></script>
+    <script type="text/javascript" src="/js/ace/ace.js"></script>
+    <script>
+    let editor, session;
+    window.onload = () => {
+      editor = ace.edit("editor");
+      editor.setTheme("ace/theme/monokai");
+      session = editor.getSession();
+      session.setMode("ace/mode/javascript");
+    };
+    </script>
     <script type="text/javascript" src="/js/dashboard-bundle.js"></script>
   </body>
 </html>

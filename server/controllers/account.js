@@ -99,7 +99,7 @@ const signUp = (req_, res) => {
       let errorMessage = 'An error occurred.';
       if (err.code === 11000) {
         const message = err.errmsg;
-        
+
         if (message.indexOf('username') >= 0) {
           errorMessage = 'Username is already in use.';
         } else if (message.indexOf('email') >= 0) {
