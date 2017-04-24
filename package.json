@@ -4,7 +4,16 @@
   "description": "The abetting editor",
   "main": "./server/server.js",
   "scripts": {
+    "debug": "node --inspect ./server/server.js",
     "nodemon": "nodemon --watch ./server ./server/server.js",
+    "build": "npm run buildSplashBundle && npm run buildAccountEntryBundle && npm run buildDashboardBundle",
+    "buildAccountEntryBundle": "babel ./client/account/entry.js ./client/shared --presets react --out-file ./hosted/js/account-entry-bundle.js",
+    "buildDashboardBundle": "babel ./client/dashboard ./client/shared --presets react --out-file ./hosted/js/dashboard-bundle.js",
+    "buildSplashBundle": "babel ./client/splash ./client/shared --presets react --out-file ./hosted/js/splash-bundle.js",
+    "watch": "concurrently \"npm run watchSplashBundle\" \"npm run watchAccountEntryBundle\" \"npm run watchDashboardBundle\"",
+    "watchAccountEntryBundle": "babel --watch ./client/account/entry.js ./client/shared --presets react --out-file ./hosted/js/account-entry-bundle.js",
+    "watchDashboardBundle": "babel --watch ./client/dashboard ./client/shared --presets react --out-file ./hosted/js/dashboard-bundle.js",
+    "watchSplashBundle": "babel --watch ./client/splash ./client/shared --presets react --out-file ./hosted/js/splash-bundle.js",
     "start": "node ./server/server.js",
     "pretest": "eslint ./server --fix",
     "test": "echo Tests complete!"
@@ -19,6 +28,19 @@
     "url": "https://github.com/TheCodeInside/Abeditor/issues"
   },
   "homepage": "https://github.com/TheCodeInside/Abeditor#readme",
+  "dependencies": {
+    "body-parser": "^1.17.1",
+    "compression": "^1.6.2",
+    "connect-redis": "^3.2.0",
+    "cookie-parser": "^1.4.3",
+    "csurf": "^1.9.0",
+    "express": "^4.15.2",
+    "express-handlebars": "^3.0.0",
+    "express-session": "^1.15.2",
+    "mongoose": "^4.9.4",
+    "serve-favicon": "^2.4.2",
+    "underscore": "^1.8.3"
+  },
   "devDependencies": {
     "babel-cli": "^6.24.1",
     "babel-preset-env": "^1.4.0",
@@ -28,17 +50,5 @@
     "eslint-config-airbnb": "^14.1.0",
     "eslint-plugin-import": "^2.2.0",
     "nodemon": "^1.11.0"
-  },
-  "dependencies": {
-    "body-parser": "^1.17.1",
-    "compression": "^1.6.2",
-    "connect-redis": "^3.2.0",
-    "cookie-parser": "^1.4.3",
-    "csurf": "^1.9.0",
-    "express": "^4.15.2",
-    "express-session": "^1.15.2",
-    "helmet": "^3.5.0",
-    "mongoose": "^4.9.4",
-    "underscore": "^1.8.3"
   }
 }

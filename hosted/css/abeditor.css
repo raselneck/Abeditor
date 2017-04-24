@@ -1,0 +1,35 @@
+/* Necessary because of the navbar */
+body {
+  padding-top: 75px;
+}
+
+/* Hides error containers by default */
+#error-container {
+  display: none;
+  visibility: hidden;
+}
+
+/* Used on the login and sign up pages */
+#form-container {
+  border: 3px solid #ddd;
+  padding: 10px;
+  box-shadow: 
+}
+
+/* Also used on the login and sign up pages */
+#form-container form + p {
+  margin-top: 10px;
+}
+
+/* Necessary because React messes with Bootstrap rendering for some reason */
+.form-control + .form-control,
+.form-control + input[type="hidden"],
+.form-control + button,
+input[type="hidden"] + button {
+  margin-left: 6px;
+}
+
+.hidden {
+  display: none;
+  visibility: hidden;
+}
