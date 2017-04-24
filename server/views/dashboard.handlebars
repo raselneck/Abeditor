@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="description" content="Get off my back"/>
+    <meta name="author" content="Richard Selneck"/>
+    <title>Abeditor</title>
+    <link rel="shortcut icon" href="/img/favicon.png"/>
+    <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css"/>
+    <link rel="stylesheet" type="text/css" href="/css/font-awesome.min.css"/>
+    <link rel="stylesheet" type="text/css" href="/css/abeditor.css"/>
+  </head>
+  <body>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">Abeditor</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <div class="navbar-right">
+            <ul class="nav navbar-nav">
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Hello, {{username}} <span class="caret"></span></a>
+                <ul class="dropdown-menu">
+                  <li><a href="/logout">Log Out</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    {{#if error}}
+    <div class="hidden">
+      <div id="initial-error" data-message="{{error}}"></div>
+    </div>
+    {{/if}}
+
+    <div class="container" id="error-container">
+      <div class="alert alert-danger" role="alert">
+        <button type="button" class="close error-close" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <p id="error-message"></p>
+      </div>
+    </div>
+
+    <div class="container">
+      <!-- TODO - Put the editor here -->
+    </div>
+
+    <div class="container">
+      <footer>
+        <hr />
+        <p>&copy; 2017 Michael Cohen, Richard Selneck</p>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="/js/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/js/react.min.js"></script>
+    <script type="text/javascript" src="/js/react-dom.min.js"></script>
+    <script type="text/javascript" src="/js/dashboard-bundle.js"></script>
+  </body>
+</html>
