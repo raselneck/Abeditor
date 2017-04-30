@@ -1,10 +1,79 @@
 'use strict';
 
+var editor = void 0,
+    session = void 0;
+
 $(document).ready(function () {
   // Handle the log out button being clicked
   $('#logout').click(function () {
     window.location = '/logout';
   });
+
+  editor = ace.edit("editor");
+  editor.setTheme("ace/theme/monokai");
+
+  session = editor.getSession();
+  session.setMode("ace/mode/javascript");
+});
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Setting = function () {
+    function Setting(name, display, def, change) {
+        _classCallCheck(this, Setting);
+
+        this.name = name;
+        Setting.map[this.name] = this;
+        this.display = display;
+        this.change = change;
+        this.default = def;
+        this.update(Setting.retrieve(this.name) || def); // values should be objects
+    }
+
+    _createClass(Setting, [{
+        key: 'update',
+
+
+        // value is sanitized before this call
+        value: function update(value) {
+            this.value = value;
+            this.change(this.value);
+            window.localStorage.setItem(this.name, JSON.stringify({ value: value }));
+        }
+    }], [{
+        key: 'retrieve',
+        value: function retrieve(name) {
+            var val = window.localStorage.getItem(name);
+            if (!val) return null;
+
+            return JSON.parse(val).value; // all values are wrapped before storage
+        }
+    }]);
+
+    return Setting;
+}();
+
+Setting.map = {};
+
+Setting.config = [{ name: 'softTabs', display: 'Use Tabs', def: false, change: function change(value) {
+        return session.setUseSoftTabs(!value);
+    } }, { name: 'tabSize', display: 'Tab Size:', def: 4, change: function change(value) {
+        return session.setTabSize(value);
+    } }];
+
+var Menu = function Menu(settings) {
+    _classCallCheck(this, Menu);
+
+    this.settings = settings;
+};
+
+window.addEventListener('load', function () {
+    Setting.config.forEach(function (val) {
+        return new Setting(val.name, val.display, val.def, val.change);
+    });
 });
 'use strict';
 

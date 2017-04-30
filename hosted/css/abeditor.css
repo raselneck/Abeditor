@@ -3,6 +3,11 @@ body {
   padding-top: 75px;
 }
 
+#editor {
+  width: 100%;
+  height: 800px;
+}
+
 /* Hides error containers by default */
 #error-container,
 #info-container {
@@ -20,16 +25,6 @@ body {
 /* Also used on the login and sign up pages */
 #form-container form + p {
   margin-top: 10px;
-}
-
-#post-form input[type="submit"] {
-  float: right;
-  width: 100px;
-}
-
-#post-text {
-  width: 100%;
-  resize: none;
 }
 
 /* Necessary because React messes with Bootstrap rendering for some reason */

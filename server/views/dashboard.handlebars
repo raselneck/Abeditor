@@ -45,17 +45,26 @@
       {{/if}}
     </div>
 
-    <div class="container" id="error-container">
-      <div class="alert alert-danger" role="alert">
-        <button type="button" class="close error-close" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-        <p id="error-message"></p>
-      </div>
-    </div>
-
     <div class="container">
-      <!-- TODO - Put the editor here -->
+      <!-- The info and error containers go here to match the width of the main content -->
+      <div id="info-container">
+        <div class="alert alert-info" role="alert">
+          <button type="button" class="close info-close" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+          <p id="info-message"></p>
+        </div>
+      </div>
+      <div id="error-container">
+        <div class="alert alert-danger" role="alert">
+          <button type="button" class="close error-close" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+          <p id="error-message"></p>
+        </div>
+      </div>
+
+      <div id="editor"></div>
     </div>
 
     <div class="container">
@@ -69,6 +78,7 @@
     <script type="text/javascript" src="/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="/js/react.min.js"></script>
     <script type="text/javascript" src="/js/react-dom.min.js"></script>
+    <script type="text/javascript" src="/js/ace/ace.js"></script>
     <script type="text/javascript" src="/js/dashboard-bundle.js"></script>
   </body>
 </html>
