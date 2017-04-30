@@ -1,5 +1,5 @@
-const account = require('./account.js');
+const Account = require('./account.js');
 
 module.exports = {
-  account,
+  Account,
 };

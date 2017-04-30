@@ -49,25 +49,26 @@ const AccountSchema = new mongoose.Schema({
   },
 });
 
-// Helper method for converting an account to its session equivalent
-AccountSchema.statics.toSession = doc => ({
-  username: doc.username,
-  /*email: doc.email,*/
-  _id: doc._id,
-});
-
 // Checks to see if a user's password matches the given password
 const validatePassword = (doc, password, callback) => {
   const pass = doc.password;
 
-  return crypto.pbkdf2(password, doc.salt, cryptIterations, cryptKeyLength, cryptAlgorithm, (err, hash) => {
-    const hashString = hash.toString('hex');
-    if (hashString !== pass) {
-      return callback(false);
-    }
-    return callback(true);
-  });
+  return crypto.pbkdf2(password, doc.salt, cryptIterations, cryptKeyLength, cryptAlgorithm,
+    (err, hash) => {
+      const hashString = hash.toString('hex');
+      if (hashString !== pass) {
+        return callback(false);
+      }
+      return callback(true);
+    });
 };
+
+// Helper method for converting an account to its session equivalent
+AccountSchema.statics.toSession = doc => ({
+  username: doc.username,
+  /* email: doc.email,*/
+  _id: doc._id,
+});
 
 // Finds a user by their username
 AccountSchema.statics.findByUsername = (name, callback) => {
@@ -95,12 +96,10 @@ AccountSchema.statics.authenticate = (username, password, callback) =>
   // NOTE - We can also authenticate by email
   AccountModel.findByUsername(username, (err, doc) => {
     if (err) {
-      console.log(`'AccountModel.findByUsername' returned an error for ${username}`);
       return callback(err);
     }
 
     if (!doc) {
-      console.log(`'AccountModel.findByUsername' didn't find anything for ${username}`);
       return callback();
     }
 
@@ -114,10 +113,33 @@ AccountSchema.statics.authenticate = (username, password, callback) =>
     });
   });
 
+// Attempts to change a user's password
+AccountSchema.statics.changePassword = (username, oldPassword, newPassword, callback) =>
+  AccountModel.authenticate(username, oldPassword, (err, account_) => {
+    const account = account_;
+
+    if (err) {
+      return callback(err);
+    }
+
+    if (!account) {
+      const message = `Failed to aithenticate ${username}.`;
+      return callback(new Error(message));
+    }
+
+    // Now we need to generate the new hash
+    return AccountModel.generateHash(newPassword, (salt, hash) => {
+      // Update the salt and the password
+      account.salt = salt;
+      account.password = hash;
+
+      // Now re-save the account
+      account.save()
+        .then(() => callback())
+        .catch(err2 => callback(err2));
+    });
+  });
+
 // Create the account model
 AccountModel = mongoose.model('Account', AccountSchema);
-
-module.exports = {
-  AccountModel,
-  AccountSchema,
-};
+module.exports = AccountModel;

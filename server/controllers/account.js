@@ -1,21 +1,29 @@
 const models = require('../models');
+const shared = require('./shared.js');
 
-// const AccountSchema = models.account.AccountSchema;
-const AccountModel = models.account.AccountModel;
+const Account = models.Account;
 
 // Renders the log in page
 const renderLogInPage = (req, res) => {
-  res.render('account-entry', { mode: 'log-in', error: req.renderError });
+  shared.renderPage(req, res, 'account-entry', {
+    mode: 'log-in',
+    error: req.renderError,
+  });
 };
 
 // Renders the sign up page
 const renderSignUpPage = (req, res) => {
-  res.render('account-entry', { mode: 'sign-up', error: req.renderError });
+  shared.renderPage(req, res, 'account-entry', {
+    mode: 'sign-up',
+    error: req.renderError,
+  });
 };
 
-// Renders the settings page
-const renderSettingsPage = (req, res) => {
-  res.status(501).json({ error: 'Sorry, not implemented :/' });
+// Renders the change password page
+const renderChangePasswordPage = (req, res) => {
+  shared.renderPage(req, res, 'change-password', {
+    error: req.renderError,
+  });
 };
 
 // Attempts to log a user in
@@ -31,15 +39,16 @@ const logIn = (req_, res) => {
   }
 
   // Attempt to log in
-  return AccountModel.authenticate(username, password, (err, account) => {
+  return Account.authenticate(username, password, (err, account) => {
     if (err || !account) {
       return res.status(401).json({ error: 'Invalid username / password combination.' });
     }
 
     // Set the account info for the session
-    req.session.account = AccountModel.toSession(account);
+    req.session.account = Account.toSession(account);
 
-    return res.json({ redirect: '/dashboard' });
+    const redirect = req.headers.referer || '/dashboard';
+    return res.json({ redirect });
   });
 };
 
@@ -51,7 +60,8 @@ const logOut = (req_, res) => {
     delete req.session.account;
   }
 
-  res.redirect('/');
+  const redirect = req.headers.referer || '/dashboard';
+  res.redirect(redirect);
 };
 
 // Attempts to create a user account
@@ -74,7 +84,7 @@ const signUp = (req_, res) => {
   }
 
   // Generate the password hash
-  return AccountModel.generateHash(pass, (salt, hash) => {
+  return Account.generateHash(pass, (salt, hash) => {
     // Create the account data
     const accountData = {
       username,
@@ -84,22 +94,22 @@ const signUp = (req_, res) => {
     };
 
     // Now create the account
-    const account = new AccountModel(accountData);
+    const account = new Account(accountData);
 
     // Save the account
     const promise = account.save();
 
     promise.then(() => {
       // Save the user account in the session
-      req.session.account = AccountModel.toSession(account);
+      req.session.account = Account.toSession(account);
       res.json({ redirect: '/dashboard' });
     }).catch((err) => {
-      console.log('Error saving account:', err);
+      console.log('error saving account:', err);
 
       let errorMessage = 'An error occurred.';
       if (err.code === 11000) {
         const message = err.errmsg;
-        
+
         if (message.indexOf('username') >= 0) {
           errorMessage = 'Username is already in use.';
         } else if (message.indexOf('email') >= 0) {
@@ -112,6 +122,27 @@ const signUp = (req_, res) => {
   });
 };
 
+// Changes a user's password
+const changePassword = (req, res) => {
+  const username = `${req.session.account.username}`;
+  const oldPassword = `${req.body.oldPassword}`;
+  const newPassword = `${req.body.newPassword}`;
+  const newPassword2 = `${req.body.newPassword2}`;
+
+  if (newPassword !== newPassword2) {
+    return res.status(400).json({ error: 'Passwords do not match.' });
+  }
+
+  return Account.changePassword(username, oldPassword, newPassword, (err) => {
+    if (err) {
+      console.log('error changing password:', err);
+      return res.status(400).json({ error: 'Failed to change password.' });
+    }
+
+    return res.status(200).json({});
+  });
+};
+
 // Gets a CSRF token
 const getToken = (req, res) => {
   const token = req.csrfToken();
@@ -121,9 +152,10 @@ const getToken = (req, res) => {
 module.exports = {
   renderLogInPage,
   renderSignUpPage,
-  renderSettingsPage,
+  renderChangePasswordPage,
   logIn,
   logOut,
   signUp,
+  changePassword,
   getToken,
 };

@@ -1,4 +1,106 @@
 "use strict";
+
+// Renders the change password form
+var renderPasswordForm = function renderPasswordForm() {
+  return React.createElement(
+    "form",
+    { onSubmit: this.handleSubmit,
+      id: "user-form" },
+    React.createElement("input", { type: "hidden", name: "_csrf", value: this.props.csrf }),
+    React.createElement(
+      "div",
+      { className: "form-group" },
+      React.createElement(
+        "label",
+        { htmlFor: "oldPassword" },
+        "Current Password:"
+      ),
+      React.createElement("input", { type: "password", className: "form-control", id: "oldPassword", name: "oldPassword", placeholder: "current password", required: true, autofocus: true })
+    ),
+    React.createElement(
+      "div",
+      { className: "form-group" },
+      React.createElement(
+        "label",
+        { htmlFor: "user" },
+        "New Password:"
+      ),
+      React.createElement("input", { type: "password", className: "form-control", id: "newPassword", name: "newPassword", placeholder: "username", required: true })
+    ),
+    React.createElement(
+      "div",
+      { className: "form-group" },
+      React.createElement(
+        "label",
+        { htmlFor: "pass" },
+        "Confirm Password:"
+      ),
+      React.createElement("input", { type: "password", className: "form-control", id: "newPassword2", name: "newPassword2", placeholder: "password", required: true })
+    ),
+    React.createElement(
+      "button",
+      { type: "submit", className: "btn btn-primary btn-block" },
+      "Change Password"
+    )
+  );
+};
+
+// Handles the change password request
+var handleChangePassword = function handleChangePassword(e) {
+  e.preventDefault();
+
+  var oldPasswordElem = $('#oldPassword');
+  var newPasswordElem = $('#newPassword');
+  var newPassword2Elem = $('#newPassword2');
+
+  var oldPassword = oldPasswordElem.val();
+  var newPassword = newPasswordElem.val();
+  var newPassword2 = newPassword2Elem.val();
+
+  // Ensure the new passwords match
+  if (newPassword !== newPassword2) {
+    return displayError('New password does not match the confirmation password.');
+  }
+
+  // We need to get a CSRF token first
+  getCsrfToken(function (token) {
+    // Create the form data
+    var formData = {
+      oldPassword: oldPassword,
+      newPassword: newPassword,
+      newPassword2: newPassword2,
+      _csrf: token
+    };
+
+    sendRequest('POST', '/change-password', formData, function () {
+      displayInfo('Nice! You\'ve updated your password.');
+
+      oldPasswordElem.val('');
+      newPasswordElem.val('');
+      newPassword2Elem.val('');
+    });
+  });
+};
+
+$(document).ready(function () {
+  // We need a CSRF token, so let's get one
+  getCsrfToken(function (token) {
+    // Create the change password form
+    var ChangePasswordForm = React.createClass({
+      displayName: "ChangePasswordForm",
+
+      // Handle how the form is rendered
+      render: renderPasswordForm,
+
+      // Handle when the form is submitted
+      handleSubmit: handleChangePassword
+    });
+
+    // Render the change password form
+    var target = document.querySelector('#form-container');
+    ReactDOM.render(React.createElement(ChangePasswordForm, { csrf: token }), target);
+  });
+});
 'use strict';
 
 // Handles signing in

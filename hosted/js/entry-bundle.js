@@ -1,4 +1,228 @@
-"use strict";
+'use strict';
+
+// Handles user log in
+var handleLogIn = function handleLogIn(e) {
+  e.preventDefault();
+
+  var username = $('#user').val();
+  var password = $('#pass').val();
+
+  // Ensure the username was entered
+  if (!username) {
+    displayError('Hey so uhh... what\'s your username?');
+    return;
+  }
+
+  // Ensure the password was entered
+  if (!password) {
+    displayError('Looks like someone forgot to enter their password...');
+    return;
+  }
+
+  // Send the sign up request
+  var form = $('#user-form');
+  sendRequest('POST', form.attr('action'), form.serialize(), function (response) {
+    var data = response.data;
+    console.log(data);
+
+    displayError('This isn\'t an error; you logged in successfully!');
+  });
+};
+
+// Handles signing up
+var handleSignUp = function handleSignUp(e) {
+  e.preventDefault();
+
+  var username = $('#user').val();
+  var email = $('#email').val();
+  var password = $('#pass').val();
+  var password2 = $('#pass2').val();
+
+  // Ensure the username is valid
+  if (!isValidUsername(username)) {
+    displayError('Username is invalid. Must be between 4 and 16 characters long, and can only contain A-Z, a-z, -, or _.');
+    return;
+  }
+
+  // Ensure the email is valid
+  if (!isValidEmail(email)) {
+    displayError('Email address must be valid. Don\'t worry! It\'ll only be used to help recover your account if you forget your password.');
+    return;
+  }
+
+  // Ensure the passwords match
+  if (password !== password2) {
+    displayError('Oops! Your passwords don\'t match!');
+    return;
+  }
+
+  // Send the sign up request
+  var form = $('#user-form');
+  sendRequest('POST', form.attr('action'), form.serialize(), function (response) {
+    var data = response.data;
+    console.log(data);
+
+    displayError('This isn\'t an error; you signed up successfully!');
+  });
+};
+
+// Renders the login form
+var renderLogInForm = function renderLogInForm() {
+  return React.createElement(
+    'div',
+    null,
+    React.createElement(
+      'form',
+      { action: '/login', method: 'POST', onSubmit: this.handleSubmit, id: 'user-form' },
+      React.createElement('input', { type: 'hidden', name: '_csrf', value: this.props.csrf }),
+      React.createElement(
+        'div',
+        { className: 'form-group' },
+        React.createElement(
+          'label',
+          { htmlFor: 'user' },
+          'Username:'
+        ),
+        React.createElement('input', { type: 'text', maxlength: '16', className: 'form-control', id: 'user', name: 'user', placeholder: 'username', required: true, autofocus: true })
+      ),
+      React.createElement(
+        'div',
+        { className: 'form-group' },
+        React.createElement(
+          'label',
+          { htmlFor: 'pass' },
+          'Password:'
+        ),
+        React.createElement('input', { type: 'password', className: 'form-control', id: 'pass', name: 'pass', placeholder: 'password', required: true })
+      ),
+      React.createElement(
+        'button',
+        { type: 'submit', className: 'btn btn-primary btn-block' },
+        'Log In'
+      )
+    ),
+    React.createElement(
+      'p',
+      null,
+      'Don\'t have an account? ',
+      React.createElement(
+        'a',
+        { href: '#', onClick: this.handleClick },
+        'Sign up'
+      ),
+      '.'
+    )
+  );
+};
+
+// Renders the sign up form
+var renderSignUpForm = function renderSignUpForm() {
+  return React.createElement(
+    'div',
+    null,
+    React.createElement(
+      'form',
+      { action: '/signup', method: 'POST', onSubmit: this.handleSubmit, id: 'user-form' },
+      React.createElement('input', { type: 'hidden', name: '_csrf', value: this.props.csrf }),
+      React.createElement(
+        'div',
+        { className: 'form-group' },
+        React.createElement(
+          'label',
+          { htmlFor: 'user' },
+          'Username:'
+        ),
+        React.createElement('input', { type: 'text', maxlength: '16', className: 'form-control', id: 'user', name: 'user', placeholder: 'username', required: true, autofocus: true })
+      ),
+      React.createElement(
+        'div',
+        { className: 'form-group' },
+        React.createElement(
+          'label',
+          { htmlFor: 'email' },
+          'Email:'
+        ),
+        React.createElement('input', { type: 'email', className: 'form-control', id: 'email', name: 'email', placeholder: 'email', required: true, autofocus: true })
+      ),
+      React.createElement(
+        'div',
+        { className: 'form-group' },
+        React.createElement(
+          'label',
+          { htmlFor: 'pass' },
+          'Password:'
+        ),
+        React.createElement('input', { type: 'password', className: 'form-control', id: 'pass', name: 'pass', placeholder: 'password', required: true })
+      ),
+      React.createElement(
+        'div',
+        { className: 'form-group' },
+        React.createElement(
+          'label',
+          { htmlFor: 'pass' },
+          'Confirm password:'
+        ),
+        React.createElement('input', { type: 'password', className: 'form-control', id: 'pass2', name: 'pass2', placeholder: 'confirm password', required: true })
+      ),
+      React.createElement(
+        'button',
+        { type: 'submit', className: 'btn btn-primary btn-block' },
+        'Sign Up'
+      )
+    ),
+    React.createElement(
+      'p',
+      null,
+      'Already have an account? ',
+      React.createElement(
+        'a',
+        { href: '#', onClick: this.handleClick },
+        'Log in'
+      ),
+      '.'
+    )
+  );
+};
+
+$(document).ready(function () {
+  var SignUpForm = void 0,
+      LogInForm = void 0;
+  var csrf = void 0;
+
+  var formTarget = document.querySelector('#form-container');
+
+  SignUpForm = React.createClass({
+    displayName: 'SignUpForm',
+
+    handleSubmit: handleSignUp,
+    handleClick: function handleClick() {
+      ReactDOM.render(React.createElement(LogInForm, { csrf: csrf }), formTarget);
+    },
+    render: renderSignUpForm
+  });
+
+  LogInForm = React.createClass({
+    displayName: 'LogInForm',
+
+    handleSubmit: handleLogIn,
+    handleClick: function handleClick() {
+      ReactDOM.render(React.createElement(SignUpForm, { csrf: csrf }), formTarget);
+    },
+    render: renderLogInForm
+  });
+
+  // Get the CSRF token before doing anything
+  getCsrfToken(function (token) {
+    csrf = token;
+
+    var mode = $('#mode').attr('data-mode');
+    if (mode === 'sign-up') {
+      ReactDOM.render(React.createElement(SignUpForm, { csrf: csrf }), formTarget);
+    } else if (mode === 'log-in') {
+      ReactDOM.render(React.createElement(LogInForm, { csrf: csrf }), formTarget);
+    }
+  });
+});
 'use strict';
 
 // Handles signing in

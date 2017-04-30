@@ -12,7 +12,7 @@ const redis = require('./redis.js');
 const router = require('./router.js');
 
 const port = process.env.PORT || process.env.NODE_PORT || 3000;
-const dbUrl = process.env.MONGODB_URI || 'mongodb://localhost/Abeditor-v1';
+const dbUrl = process.env.MONGODB_URI || 'mongodb://localhost/Abeditor-v2';
 const hostedDir = path.resolve(__dirname, '..', 'hosted');
 const viewsDir = path.resolve(__dirname, 'views');
 
@@ -54,7 +54,6 @@ app.use((err, req, res, next) => {
   }
 
   console.log('Missing CSRF token from request!');
-  console.log('Found the following:', Object.keys(req.body));
   return false;
 });
 
