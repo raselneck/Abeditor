@@ -1,42 +1,20 @@
-// Handles signing in
-const handleSignIn = (e) => {
-  e.preventDefault();
-
-  const usernameElem = $('#sign-in-name');
-  const passwordElem = $('#sign-in-pass');
-
-  const username = usernameElem.val();
-  const password = passwordElem.val();
-
-  // Ensure the username and password have been entered
-  if (!username || !password) {
-    displayError('Oops! To sign in you need a username AND a password!');
-    return false;
-  }
-
-  // Attempt to sign in
-  const form = $('#sign-in-form');
-  sendRequest('POST', form.attr('action'), form.serialize(), (response) => {
-    // If we're here, then we got a response that wasn't a redirect
-    displayError('Uh-oh... This shouldn\'t have happened...');
-    console.log(response);
-  });
-};
-
 // Renders the sign in form for the navbar
 const renderNavbarSignInForm = function() {
   return (
-    <form className="navbar-form"
-          name="sign-in-form"
-          id="sign-in-form"
-          onSubmit={this.handleSubmit}
-          method="POST"
-          action="/login">
-      <input type="hidden" name="_csrf" value={this.props.csrf}/>
-      <input type="text" id="sign-in-name" name="user" placeholder="Username" className="form-control"/>
-      <input type="password" id="sign-in-pass" name="pass" placeholder="Password" className="form-control"/>
-      <button type="submit" className="btn btn-success form-control">Log In</button>
-    </form>
+    <div>
+      <form className="navbar-form"
+            name="sign-in-form"
+            id="sign-in-form"
+            onSubmit={this.handleSubmit}
+            method="POST"
+            action="/login">
+        <input type="hidden" name="_csrf" value={this.props.csrf}/>
+        <input type="text" id="sign-in-name" name="user" placeholder="Username" className="form-control"/>
+        <input type="password" id="sign-in-pass" name="pass" placeholder="Password" className="form-control"/>
+        <button type="submit" className="btn btn-success form-control" onClick={this.handleSignIn}>Log In</button>
+        <button className="btn btn-primary form-control" onClick={this.handleSignUp}>Sign Up</button>
+      </form>
+    </div>
   );
 };
 
@@ -76,8 +54,43 @@ const initNavbar = (token) => {
   const initNavbarSignIn = () => {
     // Create the sign in form
     const NavbarSignIn = React.createClass({
-      handleSubmit: handleSignIn,
-      render: renderNavbarSignInForm
+      // Handles the form being rendered
+      render: renderNavbarSignInForm,
+
+      // Handles the form being submitted
+      handleSubmit: function(e) {
+        e.preventDefault();
+      },
+
+      // Handles the sign in button being clicked
+      handleSignIn: function(e) {
+        e.preventDefault();
+
+        const usernameElem = $('#sign-in-name');
+        const passwordElem = $('#sign-in-pass');
+
+        const username = usernameElem.val();
+        const password = passwordElem.val();
+
+        // Ensure the username and password have been entered
+        if (!username || !password) {
+          displayError('Oops! To sign in you need a username AND a password!');
+          return false;
+        }
+
+        // Attempt to sign in
+        const form = $('#sign-in-form');
+        sendRequest('POST', form.attr('action'), form.serialize(), (response) => {
+          // If we're here, then we got a response that wasn't a redirect
+          displayError('Uh-oh... This shouldn\'t have happened...');
+          console.log(response);
+        });
+      },
+
+      // Handles the sign up button being clicked
+      handleSignUp: function() {
+        window.location.href = '/signup';
+      },
     });
 
     // Render the sign in form

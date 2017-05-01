@@ -45,12 +45,22 @@
       {{/if}}
     </div>
 
-    <div class="container" id="error-container">
-      <div class="alert alert-danger" role="alert">
-        <button type="button" class="close error-close" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-        <p id="error-message"></p>
+    <div class="container">
+      <div id="info-container">
+        <div class="alert alert-info" role="alert">
+          <button type="button" class="close info-close" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+          <p id="info-message"></p>
+        </div>
+      </div>
+      <div id="error-container">
+        <div class="alert alert-danger" role="alert">
+          <button type="button" class="close error-close" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+          <p id="error-message"></p>
+        </div>
       </div>
     </div>
 
@@ -58,7 +68,8 @@
       <div class="container">
         <h1>Welcome!</h1>
         <p>Abeditor is super cool, yo.</p>
-        <p><a class="btn btn-primary btn-lg" href="/signup" role="button">Sign up &raquo;</a></p>
+        <p><a class="btn btn-primary btn-lg" href="/dashboard" role="button">Try it out &raquo;</a></p>
+        <p>Or, you can <a href="/signup">create an account</a> beforehand.</p>
       </div>
     </div>
 

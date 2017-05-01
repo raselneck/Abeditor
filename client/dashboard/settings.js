@@ -12,7 +12,7 @@ class Setting {
     static retrieve(name) {
         let val = window.localStorage.getItem(name);
         if(!val) return null;
-        
+
         return JSON.parse(val).value; // all values are wrapped before storage
     }
 
@@ -30,12 +30,6 @@ Setting.config = [
     { name: 'softTabs', display: 'Use Tabs', def: false, change: value => session.setUseSoftTabs(!value) },
     { name: 'tabSize', display: 'Tab Size:', def: 4, change: value => session.setTabSize(value) }
 ];
-
-class Menu {
-    constructor(settings) {
-        this.settings = settings;
-    }
-}
 
 window.addEventListener('load', () => {
     Setting.config.forEach(val => new Setting(val.name, val.display, val.def, val.change));

@@ -21,6 +21,233 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+var menu = void 0;
+
+// Defines an easy way to interact with the menu
+
+var Menu = function () {
+  // Create the menu by loading all of the elements and handling their events
+  function Menu(settings) {
+    _classCallCheck(this, Menu);
+
+    this.settings = settings;
+    this.file = {};
+    this.edit = {};
+
+    this.findElements();
+    this.handleEvents();
+  }
+
+  // Finds all of the elements necessary for this menu
+
+
+  _createClass(Menu, [{
+    key: 'findElements',
+    value: function findElements() {
+      this.file.new = $('#file-new');
+      this.file.open = $('#file-open');
+      this.file.save = $('#file-save');
+
+      this.edit.cut = $('#edit-cut');
+      this.edit.copy = $('#edit-copy');
+      this.edit.paste = $('#edit-paste');
+    }
+
+    // Handles all of the events for elements
+
+  }, {
+    key: 'handleEvents',
+    value: function handleEvents() {
+      this.file.new.click(this.onNew.bind(this));
+      this.file.open.click(this.onOpen.bind(this));
+      this.file.save.click(this.onSave.bind(this));
+
+      this.edit.cut.click(this.onCut.bind(this));
+      this.edit.copy.click(this.onCopy.bind(this));
+      this.edit.paste.click(this.onPaste.bind(this));
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // File menu handlers
+    //
+
+    // Handles when File>New is clicked
+
+  }, {
+    key: 'onNew',
+    value: function onNew() {}
+
+    // Handles when File>Open is clicked
+
+  }, {
+    key: 'onOpen',
+    value: function onOpen() {}
+
+    // Handles when File>Save is clicked
+
+  }, {
+    key: 'onSave',
+    value: function onSave() {}
+
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Edit menu handlers
+    //
+
+    // Handles when Edit>Cut is clicked
+
+  }, {
+    key: 'onCut',
+    value: function onCut() {}
+
+    // Handles when Edit>Copy is clicked
+
+  }, {
+    key: 'onCopy',
+    value: function onCopy() {}
+
+    // Handles when Edit>Paste is clicked
+
+  }, {
+    key: 'onPaste',
+    value: function onPaste() {}
+  }]);
+
+  return Menu;
+}();
+
+// When the document is ready
+
+
+$(document).ready(function () {
+  // If there's nothing to render the menu into, then don't both rendering it
+  var menuTarget = document.querySelector('#navbar-menu');
+  if (!menuTarget) {
+    return;
+  }
+
+  // Render the menu
+  var renderMenu = function renderMenu() {
+    return React.createElement(
+      'ul',
+      { className: 'nav navbar-nav' },
+      React.createElement(
+        'li',
+        { className: 'dropdown' },
+        React.createElement(
+          'a',
+          { href: '#',
+            className: 'dropdown-toggle',
+            'data-toggle': 'dropdown',
+            role: 'button',
+            'aria-haspopup': 'true',
+            'aria-expanded': 'false' },
+          'File ',
+          React.createElement('span', { className: 'caret' })
+        ),
+        React.createElement(
+          'ul',
+          { className: 'dropdown-menu' },
+          React.createElement(
+            'li',
+            null,
+            React.createElement(
+              'a',
+              { href: '#', id: '#file-new' },
+              'New'
+            )
+          ),
+          React.createElement(
+            'li',
+            null,
+            React.createElement(
+              'a',
+              { href: '#', id: '#file-open' },
+              'Open'
+            )
+          ),
+          React.createElement('li', { role: 'separator', className: 'divider' }),
+          React.createElement(
+            'li',
+            null,
+            React.createElement(
+              'a',
+              { href: '#', id: '#file-save' },
+              'Save'
+            )
+          )
+        )
+      ),
+      React.createElement(
+        'li',
+        { className: 'dropdown' },
+        React.createElement(
+          'a',
+          { href: '#',
+            className: 'dropdown-toggle',
+            'data-toggle': 'dropdown',
+            role: 'button',
+            'aria-haspopup': 'true',
+            'aria-expanded': 'false' },
+          'Edit ',
+          React.createElement('span', { className: 'caret' })
+        ),
+        React.createElement(
+          'ul',
+          { className: 'dropdown-menu' },
+          React.createElement(
+            'li',
+            null,
+            React.createElement(
+              'a',
+              { href: '#', id: '#edit-cut' },
+              'Cut'
+            )
+          ),
+          React.createElement(
+            'li',
+            null,
+            React.createElement(
+              'a',
+              { href: '#', id: '#edit-copy' },
+              'Copy'
+            )
+          ),
+          React.createElement(
+            'li',
+            null,
+            React.createElement(
+              'a',
+              { href: '#', id: '#edit-paste' },
+              'Paste'
+            )
+          )
+        )
+      )
+    );
+  };
+
+  // Create the React menu class
+  var MenuClass = React.createClass({
+    displayName: 'MenuClass',
+
+    // Handles the class being rendered
+    render: renderMenu
+  });
+
+  // Render the menu
+  var menuRenderer = ReactDOM.render(React.createElement(MenuClass, null), menuTarget);
+
+  // Load the menu
+  menu = new Menu();
+});
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 var Setting = function () {
     function Setting(name, display, def, change) {
         _classCallCheck(this, Setting);
@@ -64,61 +291,39 @@ Setting.config = [{ name: 'softTabs', display: 'Use Tabs', def: false, change: f
         return session.setTabSize(value);
     } }];
 
-var Menu = function Menu(settings) {
-    _classCallCheck(this, Menu);
-
-    this.settings = settings;
-};
-
 window.addEventListener('load', function () {
     Setting.config.forEach(function (val) {
         return new Setting(val.name, val.display, val.def, val.change);
     });
 });
-'use strict';
-
-// Handles signing in
-var handleSignIn = function handleSignIn(e) {
-  e.preventDefault();
-
-  var usernameElem = $('#sign-in-name');
-  var passwordElem = $('#sign-in-pass');
-
-  var username = usernameElem.val();
-  var password = passwordElem.val();
-
-  // Ensure the username and password have been entered
-  if (!username || !password) {
-    displayError('Oops! To sign in you need a username AND a password!');
-    return false;
-  }
-
-  // Attempt to sign in
-  var form = $('#sign-in-form');
-  sendRequest('POST', form.attr('action'), form.serialize(), function (response) {
-    // If we're here, then we got a response that wasn't a redirect
-    displayError('Uh-oh... This shouldn\'t have happened...');
-    console.log(response);
-  });
-};
+"use strict";
 
 // Renders the sign in form for the navbar
 var renderNavbarSignInForm = function renderNavbarSignInForm() {
   return React.createElement(
-    'form',
-    { className: 'navbar-form',
-      name: 'sign-in-form',
-      id: 'sign-in-form',
-      onSubmit: this.handleSubmit,
-      method: 'POST',
-      action: '/login' },
-    React.createElement('input', { type: 'hidden', name: '_csrf', value: this.props.csrf }),
-    React.createElement('input', { type: 'text', id: 'sign-in-name', name: 'user', placeholder: 'Username', className: 'form-control' }),
-    React.createElement('input', { type: 'password', id: 'sign-in-pass', name: 'pass', placeholder: 'Password', className: 'form-control' }),
+    "div",
+    null,
     React.createElement(
-      'button',
-      { type: 'submit', className: 'btn btn-success form-control' },
-      'Log In'
+      "form",
+      { className: "navbar-form",
+        name: "sign-in-form",
+        id: "sign-in-form",
+        onSubmit: this.handleSubmit,
+        method: "POST",
+        action: "/login" },
+      React.createElement("input", { type: "hidden", name: "_csrf", value: this.props.csrf }),
+      React.createElement("input", { type: "text", id: "sign-in-name", name: "user", placeholder: "Username", className: "form-control" }),
+      React.createElement("input", { type: "password", id: "sign-in-pass", name: "pass", placeholder: "Password", className: "form-control" }),
+      React.createElement(
+        "button",
+        { type: "submit", className: "btn btn-success form-control", onClick: this.handleSignIn },
+        "Log In"
+      ),
+      React.createElement(
+        "button",
+        { className: "btn btn-primary form-control", onClick: this.handleSignUp },
+        "Sign Up"
+      )
     )
   );
 };
@@ -126,44 +331,44 @@ var renderNavbarSignInForm = function renderNavbarSignInForm() {
 // Renders the navbar account info
 var renderNavbarAccountInfo = function renderNavbarAccountInfo() {
   return React.createElement(
-    'ul',
-    { className: 'nav navbar-nav' },
+    "ul",
+    { className: "nav navbar-nav" },
     React.createElement(
-      'li',
-      { className: 'dropdown' },
+      "li",
+      { className: "dropdown" },
       React.createElement(
-        'a',
-        { href: '#',
-          className: 'dropdown-toggle',
-          'data-toggle': 'dropdown',
-          role: 'button',
-          'aria-haspopup': 'true',
-          'aria-expanded': 'false' },
-        'Hello, ',
+        "a",
+        { href: "#",
+          className: "dropdown-toggle",
+          "data-toggle": "dropdown",
+          role: "button",
+          "aria-haspopup": "true",
+          "aria-expanded": "false" },
+        "Hello, ",
         this.state.username,
-        ' ',
-        React.createElement('span', { className: 'caret' })
+        " ",
+        React.createElement("span", { className: "caret" })
       ),
       React.createElement(
-        'ul',
-        { className: 'dropdown-menu' },
+        "ul",
+        { className: "dropdown-menu" },
         React.createElement(
-          'li',
+          "li",
           null,
           React.createElement(
-            'a',
-            { href: '/change-password' },
-            'Change Password'
+            "a",
+            { href: "/change-password" },
+            "Change Password"
           )
         ),
-        React.createElement('li', { role: 'separator', className: 'divider' }),
+        React.createElement("li", { role: "separator", className: "divider" }),
         React.createElement(
-          'li',
+          "li",
           null,
           React.createElement(
-            'a',
-            { href: '/logout' },
-            'Log Out'
+            "a",
+            { href: "/logout" },
+            "Log Out"
           )
         )
       )
@@ -185,10 +390,45 @@ var initNavbar = function initNavbar(token) {
   var initNavbarSignIn = function initNavbarSignIn() {
     // Create the sign in form
     var NavbarSignIn = React.createClass({
-      displayName: 'NavbarSignIn',
+      displayName: "NavbarSignIn",
 
-      handleSubmit: handleSignIn,
-      render: renderNavbarSignInForm
+      // Handles the form being rendered
+      render: renderNavbarSignInForm,
+
+      // Handles the form being submitted
+      handleSubmit: function handleSubmit(e) {
+        e.preventDefault();
+      },
+
+      // Handles the sign in button being clicked
+      handleSignIn: function handleSignIn(e) {
+        e.preventDefault();
+
+        var usernameElem = $('#sign-in-name');
+        var passwordElem = $('#sign-in-pass');
+
+        var username = usernameElem.val();
+        var password = passwordElem.val();
+
+        // Ensure the username and password have been entered
+        if (!username || !password) {
+          displayError('Oops! To sign in you need a username AND a password!');
+          return false;
+        }
+
+        // Attempt to sign in
+        var form = $('#sign-in-form');
+        sendRequest('POST', form.attr('action'), form.serialize(), function (response) {
+          // If we're here, then we got a response that wasn't a redirect
+          displayError('Uh-oh... This shouldn\'t have happened...');
+          console.log(response);
+        });
+      },
+
+      // Handles the sign up button being clicked
+      handleSignUp: function handleSignUp() {
+        window.location.href = '/signup';
+      }
     });
 
     // Render the sign in form
@@ -198,7 +438,7 @@ var initNavbar = function initNavbar(token) {
   // Initializes the navbar account menu
   var initNavbarAccount = function initNavbarAccount(username, id) {
     var NavbarAccount = React.createClass({
-      displayName: 'NavbarAccount',
+      displayName: "NavbarAccount",
 
       render: renderNavbarAccountInfo,
 
