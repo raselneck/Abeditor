@@ -27,6 +27,7 @@ $(document).ready(() => {
   let uid;
   socket.on('join', data => {
     uid = data.id;
+    userEdit = false;
     session.insert({row: 0, column: 0}, data.text);
   });
 
