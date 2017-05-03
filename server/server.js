@@ -10,9 +10,11 @@ const mongoose = require('mongoose');
 const path = require('path');
 const redis = require('./redis.js');
 const router = require('./router.js');
+const http = require('http');
+const socketio = require('socket.io');
 
 const port = process.env.PORT || process.env.NODE_PORT || 3000;
-const dbUrl = process.env.MONGODB_URI || 'mongodb://localhost/Abeditor-v1';
+const dbUrl = process.env.MONGODB_URI || 'mongodb://localhost/Abeditor-v2';
 const hostedDir = path.resolve(__dirname, '..', 'hosted');
 const viewsDir = path.resolve(__dirname, 'views');
 
@@ -24,8 +26,11 @@ mongoose.connect(dbUrl, (err) => {
   }
 });
 
-// Configure our Express app
 const app = express();
+const httpServer = http.createServer(app);
+const io = socketio(httpServer);
+
+// Configure our Express app
 app.use(express.static(hostedDir));
 app.use(favicon(path.join(hostedDir, 'img', 'favicon.png')));
 app.set('x-powered-by', 'Mountain Dew except not really');
@@ -54,7 +59,6 @@ app.use((err, req, res, next) => {
   }
 
   console.log('Missing CSRF token from request!');
-  console.log('Found the following:', Object.keys(req.body));
   return false;
 });
 
@@ -62,10 +66,63 @@ app.use((err, req, res, next) => {
 app.use(router);
 
 // Start the Express app
-app.listen(port, (err) => {
+httpServer.listen(port, (err) => {
   if (err) {
     throw new Error(err);
   }
-
   console.log(`Abeditor is now running at http://localhost:${port}/`);
+});
+
+const users = {};
+let text = '';
+
+const actions = {
+  insert: 0,
+  remove: 1,
+};
+Object.freeze(actions);
+
+const onJoin = (sock) => {
+  const socket = sock;
+  socket.on('join', () => {
+    let id;
+    do { id = Math.random() * 20; } while (users[id]);
+    socket.emit('join', { id, text });
+  });
+};
+
+const onInput = (sock) => {
+  const socket = sock;
+  socket.on('input', (data) => {
+    const delta = data.delta;
+    switch (delta.action) {
+      case actions.insert:
+        text = text.substring(0, delta.start.index)
+                + delta.lines + text.substring(delta.start.index
+                + delta.lines.length);
+        break;
+      case actions.remove:
+        text = text.substring(0, delta.start.index) + text.substring(delta.end.index);
+        break;
+      default:
+        break;
+    }
+    socket.broadcast.to('room1').emit('update', { delta: data.delta });
+  });
+};
+
+const onDisconnect = (sock) => {
+  const socket = sock;
+  socket.on('disconnect', (data) => {
+    // check that the user successfully joined before deleting
+    if (users[data.id]) delete users[data.id];
+  });
+};
+
+io.sockets.on('connection', (socket) => {
+  console.log('started');
+  socket.join('room1');
+  onJoin(socket);
+  onInput(socket);
+  onDisconnect(socket);
 });

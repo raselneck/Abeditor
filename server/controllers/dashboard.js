@@ -1,6 +1,8 @@
+const shared = require('./shared.js');
+
+// Renders a user's dashboard
 const renderDashboard = (req, res) => {
-  const account = req.session.account;
-  res.render('dashboard', { username: account.username });
+  shared.renderPage(req, res, 'dashboard');
 };
 
 module.exports = {

@@ -3,8 +3,14 @@ body {
   padding-top: 75px;
 }
 
+#editor {
+  width: 100%;
+  height: 800px;
+}
+
 /* Hides error containers by default */
-#error-container {
+#error-container,
+#info-container {
   display: none;
   visibility: hidden;
 }
@@ -13,7 +19,7 @@ body {
 #form-container {
   border: 3px solid #ddd;
   padding: 10px;
-  box-shadow: 
+  box-shadow:
 }
 
 /* Also used on the login and sign up pages */
@@ -45,7 +51,19 @@ input[type="hidden"] + button {
   visibility: hidden;
 }
 
-#editor { 
-  width: 100%;
-  height: 800px;
+.col-center {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.left {
+  float: left;
+}
+
+.right {
+  float: right;
+}
+
+.clearfix {
+  clear: both;
 }

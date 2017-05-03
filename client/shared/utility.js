@@ -1,12 +1,31 @@
+// Dismisses the info message
+const dismissInfo = () => {
+  $('#info-container').css({
+    display: 'none',
+    visibility: 'hidden',
+  });
+};
+
+// Handles an info message
+const displayInfo = (msg) => {
+  if (msg) {
+    // Show the container
+    $('#info-container').css({
+      display: 'block',
+      visibility: 'visible',
+    });
+
+    // Set the info message
+    $('#info-message').text(msg);
+  }
+};
+
 // Dismisses the current error message
 const dismissError = () => {
-  const container = $('#error-container');
-  if (container) {
-    container.css({
-      display: 'none',
-      visibility: 'hidden',
-    });
-  }
+  $('#error-container').css({
+    display: 'none',
+    visibility: 'hidden',
+  });
 };
 
 // Handles an error message
@@ -15,19 +34,13 @@ const displayError = (msg) => {
   console.log(message);
 
   // Show the container
-  const container = $('#error-container');
-  if (container) {
-    container.css({
-      display: 'block',
-      visibility: 'visible',
-    });
-  }
+  $('#error-container').css({
+    display: 'block',
+    visibility: 'visible',
+  });
 
   // Set the error message
-  const err = $('#error-message');
-  if (err) {
-    err.text(message);
-  }
+  $('#error-message').text(message);
 };
 
 // Defines a response
@@ -60,6 +73,9 @@ const sendRequest = (method, url, data, callback, userdata) => {
 
       if (response.data.redirect) {
         window.location = response.data.redirect;
+      } else if (response.data.info) {
+        displayInfo(response.data.info);
+        callback(response);
       } else {
         callback(response);
       }
@@ -104,8 +120,15 @@ $(document).ready(() => {
     displayError(initialError);
   }
 
+  // Handle the info alert button being clicked
+  $('button.info-close').click(() => {
+    dismissInfo();
+  });
+
   // Handle the error alert button being clicked
   $('button.error-close').click(() => {
     dismissError();
   });
+
+  getCsrfToken(initNavbar);
 });

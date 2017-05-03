@@ -10,7 +10,7 @@
     <link rel="shortcut icon" href="/img/favicon.png"/>
     <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css"/>
     <link rel="stylesheet" type="text/css" href="/css/font-awesome.min.css"/>
-    <link rel="stylesheet" type="text/css" href="/css/abeditor.css"/>
+    <link rel="stylesheet" type="text/css" href="/css/Abeditor.css"/>
   </head>
   <body>
     <nav class="navbar navbar-inverse navbar-fixed-top">
@@ -27,11 +27,19 @@
       </div>
     </nav>
 
-    {{#if error}}
     <div class="hidden">
-      <div id="initial-error" data-message="{{error}}"></div>
+      {{#if error}}
+      <div  id="initial-error"
+            data-message="{{error}}">
+      </div>
+      {{/if}}
+      {{#if account}}
+      <div  id="account-info"
+            data-id="{{account.id}}"
+            data-username="{{account.username}}">
+      </div>
+      {{/if}}
     </div>
-    {{/if}}
 
     <div class="container" id="error-container">
       <div class="alert alert-danger" role="alert">
@@ -60,6 +68,6 @@
     <script type="text/javascript" src="/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="/js/react.min.js"></script>
     <script type="text/javascript" src="/js/react-dom.min.js"></script>
-    <script type="text/javascript" src="/js/account-entry-bundle.js"></script>
+    <script type="text/javascript" src="/js/entry-bundle.js"></script>
   </body>
 </html>

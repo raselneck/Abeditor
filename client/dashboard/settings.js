@@ -7,13 +7,42 @@ class Setting {
         this.display = display;
         this.change = change;
         this.default = def;
-        this.update(Setting.retrieve(this.name) || def); // values should be objects
+        if(this.type != Setting.types.misc && this.type != Setting.types.popup) this.update(Setting.retrieve(this.name) || def); // values should be objects
+    }
+
+    genElement() {
+        let el = document.createElement('li');
+        let extra;
+        if(this.type == Setting.types.checkbox) {
+            extra = document.createElement('input');
+            extra.type = 'checkbox';
+            extra.checked = this.value;
+            extra.onchange = () => this.update(extra.checked);
+        }
+        else if(this.type == Setting.types.number) {
+            extra = document.createElement('input');
+            extra.type = 'text';
+            extra.value = this.value;
+            extra.onchange = () => {
+                let val = Number.parseFloat(extra.value);
+                if(!Number.isNaN(val)) this.update(val);
+            };
+        }
+        else if(this.type == Setting.types.text) {
+            extra = document.createElement('input');
+            extra.type = 'text';
+            extra.value = this.value;
+            extra.onchange = () => this.update(extra.value);
+        }
+        el.innerHTML = `<a href="#">${this.display}</a>`; // replace later based on setting type
+        if(extra) el.querySelector('a').appendChild(extra);
+        return el;
     }
 
     static retrieve(name) {
         let val = window.localStorage.getItem(name);
         if(!val) return null;
-        
+
         return JSON.parse(val).value; // all values are wrapped before storage
     }
 
@@ -28,41 +57,32 @@ class Setting {
 Setting.types = {
     checkbox: 0,
     number: 1,
-    text: 2
+    text: 2,
+    popup: 3,
+    misc: 4
 };
-Object.freeze(Settings.types);
+Object.freeze(Setting.types);
 
 Setting.map = {};
 
-class Menu {
-    constructor(name) {
-        this.name = name;
-    }
-}
-
-Menu.map = {};
-Menu.map.file = new Menu('File');
-Menu.map.edit = new Menu('Edit');
-Menu.map.view = new Menu('View');
-
-Menu.list = [ Menu.map.file, Menu.map.edit, Menu.map.view ]; // display the menus in this order
+Setting.separator = (() => {
+    let s = new Setting('sep',Setting.misc,'','',()=>{});
+    s.genElement = function() { 
+        let el = document.createElement('li');
+        el.role = 'separator';
+        el.classList.add('divider');
+        return el; 
+    };
+    return s;
+})();
 
 Setting.config = [
-    { name: 'softTabs', type: Setting.types.checkbox, display: 'Use Tabs',  def: false, change: value => session.setUseSoftTabs(!value) },
-    { name: 'tabSize',  type: Setting.types.number,   display: 'Tab Size:', def: 4,     change: value => session.setTabSize(value) }
+    { name: 'newFile',   type: Setting.types.misc,     display: 'New',                   change: () => window.open(window.location.href) }, // adjust to open new instance
+    { name: 'openFile',  type: Setting.types.misc,     display: 'Open',                  change: () => window.open(window.location.href) }, // adjust for gist integration
+    { name: 'saveFile',  type: Setting.types.misc,     display: 'Save', 
+        change: () => saveAs(new Blob([sessionDoc.getValue()], { type: "text/plain;charset=utf-8" }), "file.txt") }, // update with filename
+    
+
+    { name: 'softTabs',  type: Setting.types.checkbox, display: 'Use Tabs',  def: false, change: value => session.setUseSoftTabs(!value) },
+    { name: 'tabSize',   type: Setting.types.number,   display: 'Tab Size:', def: 4,     change: value => session.setTabSize(value) }
 ];
-
-Menu.map.file.contents = []; // if it's a string, it's a setting, otherwise it's a submenu or popup
-
-window.addEventListener('load', () => {
-    Setting.config.forEach(val => new Setting(val.name, val.display, val.def, val.change));
-
-    Object.keys(Menu.map).forEach(key => {
-        const menu = Menu.map[key];
-        menu.contents.forEach((item, i) => {
-            if(typeof(item) === 'string')
-                menu.contents[i] = Setting.map[item];
-            else if///
-        });
-    });
-});
