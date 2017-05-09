@@ -223,50 +223,34 @@ $(document).ready(function () {
     }
   });
 });
-'use strict';
-
-// Handles signing in
-var handleSignIn = function handleSignIn(e) {
-  e.preventDefault();
-
-  var usernameElem = $('#sign-in-name');
-  var passwordElem = $('#sign-in-pass');
-
-  var username = usernameElem.val();
-  var password = passwordElem.val();
-
-  // Ensure the username and password have been entered
-  if (!username || !password) {
-    displayError('Oops! To sign in you need a username AND a password!');
-    return false;
-  }
-
-  // Attempt to sign in
-  var form = $('#sign-in-form');
-  sendRequest('POST', form.attr('action'), form.serialize(), function (response) {
-    // If we're here, then we got a response that wasn't a redirect
-    displayError('Uh-oh... This shouldn\'t have happened...');
-    console.log(response);
-  });
-};
+"use strict";
 
 // Renders the sign in form for the navbar
 var renderNavbarSignInForm = function renderNavbarSignInForm() {
   return React.createElement(
-    'form',
-    { className: 'navbar-form',
-      name: 'sign-in-form',
-      id: 'sign-in-form',
-      onSubmit: this.handleSubmit,
-      method: 'POST',
-      action: '/login' },
-    React.createElement('input', { type: 'hidden', name: '_csrf', value: this.props.csrf }),
-    React.createElement('input', { type: 'text', id: 'sign-in-name', name: 'user', placeholder: 'Username', className: 'form-control' }),
-    React.createElement('input', { type: 'password', id: 'sign-in-pass', name: 'pass', placeholder: 'Password', className: 'form-control' }),
+    "div",
+    null,
     React.createElement(
-      'button',
-      { type: 'submit', className: 'btn btn-success form-control' },
-      'Log In'
+      "form",
+      { className: "navbar-form",
+        name: "sign-in-form",
+        id: "sign-in-form",
+        onSubmit: this.handleSubmit,
+        method: "POST",
+        action: "/login" },
+      React.createElement("input", { type: "hidden", name: "_csrf", value: this.props.csrf }),
+      React.createElement("input", { type: "text", id: "sign-in-name", name: "user", placeholder: "Username", className: "form-control" }),
+      React.createElement("input", { type: "password", id: "sign-in-pass", name: "pass", placeholder: "Password", className: "form-control" }),
+      React.createElement(
+        "button",
+        { id: "navbar-log-in", type: "submit", className: "btn btn-success form-control", onClick: this.handleSignIn },
+        "Log In"
+      ),
+      React.createElement(
+        "button",
+        { id: "navbar-sign-up", className: "btn btn-primary form-control", onClick: this.handleSignUp },
+        "Sign Up"
+      )
     )
   );
 };
@@ -274,53 +258,44 @@ var renderNavbarSignInForm = function renderNavbarSignInForm() {
 // Renders the navbar account info
 var renderNavbarAccountInfo = function renderNavbarAccountInfo() {
   return React.createElement(
-    'ul',
-    { className: 'nav navbar-nav' },
+    "ul",
+    { className: "nav navbar-nav" },
     React.createElement(
-      'li',
-      { className: 'dropdown' },
+      "li",
+      { className: "dropdown" },
       React.createElement(
-        'a',
-        { href: '#',
-          className: 'dropdown-toggle',
-          'data-toggle': 'dropdown',
-          role: 'button',
-          'aria-haspopup': 'true',
-          'aria-expanded': 'false' },
-        'Hello, ',
+        "a",
+        { href: "#",
+          className: "dropdown-toggle",
+          "data-toggle": "dropdown",
+          role: "button",
+          "aria-haspopup": "true",
+          "aria-expanded": "false" },
+        "Hello, ",
         this.state.username,
-        ' ',
-        React.createElement('span', { className: 'caret' })
+        " ",
+        React.createElement("span", { className: "caret" })
       ),
       React.createElement(
-        'ul',
-        { className: 'dropdown-menu' },
+        "ul",
+        { className: "dropdown-menu" },
         React.createElement(
-          'li',
+          "li",
           null,
           React.createElement(
-            'a',
-            { href: this.getProfileHref() },
-            'Profile'
+            "a",
+            { href: "/change-password" },
+            "Change Password"
           )
         ),
+        React.createElement("li", { role: "separator", className: "divider" }),
         React.createElement(
-          'li',
+          "li",
           null,
           React.createElement(
-            'a',
-            { href: '/change-password' },
-            'Change Password'
-          )
-        ),
-        React.createElement('li', { role: 'separator', className: 'divider' }),
-        React.createElement(
-          'li',
-          null,
-          React.createElement(
-            'a',
-            { href: '/logout' },
-            'Log Out'
+            "a",
+            { href: "/logout" },
+            "Log Out"
           )
         )
       )
@@ -342,10 +317,45 @@ var initNavbar = function initNavbar(token) {
   var initNavbarSignIn = function initNavbarSignIn() {
     // Create the sign in form
     var NavbarSignIn = React.createClass({
-      displayName: 'NavbarSignIn',
+      displayName: "NavbarSignIn",
 
-      handleSubmit: handleSignIn,
-      render: renderNavbarSignInForm
+      // Handles the form being rendered
+      render: renderNavbarSignInForm,
+
+      // Handles the form being submitted
+      handleSubmit: function handleSubmit(e) {
+        e.preventDefault();
+      },
+
+      // Handles the sign in button being clicked
+      handleSignIn: function handleSignIn(e) {
+        e.preventDefault();
+
+        var usernameElem = $('#sign-in-name');
+        var passwordElem = $('#sign-in-pass');
+
+        var username = usernameElem.val();
+        var password = passwordElem.val();
+
+        // Ensure the username and password have been entered
+        if (!username || !password) {
+          displayError('Oops! To sign in you need a username AND a password!');
+          return false;
+        }
+
+        // Attempt to sign in
+        var form = $('#sign-in-form');
+        sendRequest('POST', form.attr('action'), form.serialize(), function (response) {
+          // If we're here, then we got a response that wasn't a redirect
+          displayError('Uh-oh... This shouldn\'t have happened...');
+          console.log(response);
+        });
+      },
+
+      // Handles the sign up button being clicked
+      handleSignUp: function handleSignUp() {
+        window.location.href = '/signup';
+      }
     });
 
     // Render the sign in form
@@ -355,18 +365,13 @@ var initNavbar = function initNavbar(token) {
   // Initializes the navbar account menu
   var initNavbarAccount = function initNavbarAccount(username, id) {
     var NavbarAccount = React.createClass({
-      displayName: 'NavbarAccount',
+      displayName: "NavbarAccount",
 
       render: renderNavbarAccountInfo,
 
       // Gets the initial state
       getInitialState: function getInitialState() {
         return { username: username, id: id };
-      },
-
-      // Gets this user's profile link
-      getProfileHref: function getProfileHref() {
-        return '/profile/' + this.state.username;
       }
     });
 

@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const mongoose = require('mongoose');
+const github = require('../github.js');
 
 mongoose.Promise = global.Promise;
 
@@ -31,6 +32,13 @@ const AccountSchema = new mongoose.Schema({
   githubToken: {
     type: String,
     trim: true,
+    default: '',
+  },
+
+  githubName: {
+    type: String,
+    trim: true,
+    default: '',
   },
 
   salt: {
@@ -66,7 +74,9 @@ const validatePassword = (doc, password, callback) => {
 // Helper method for converting an account to its session equivalent
 AccountSchema.statics.toSession = doc => ({
   username: doc.username,
-  /* email: doc.email,*/
+  email: doc.email,
+  githubToken: doc.githubToken,
+  githubName: doc.githubName,
   _id: doc._id,
 });
 

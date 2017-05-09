@@ -35,7 +35,13 @@ input[type="hidden"] + button {
   margin-left: 6px;
 }
 
-/* Fricken Bootstrap using -1 in weird ass places */
+@media (max-width: 991px) {
+  #navbar-sign-up {
+    visibility: hidden;
+    display: none;
+  }
+}
+
 @media (max-width: 767px) {
   .form-control + .form-control,
   .form-control + input[type="hidden"],
@@ -43,6 +49,11 @@ input[type="hidden"] + button {
   input[type="hidden"] + button {
     margin-left: 0px;
     margin-top: 6px;
+  }
+
+  #navbar-sign-up {
+    visibility: visible;
+    display: inline-block;
   }
 }
 

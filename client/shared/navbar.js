@@ -11,8 +11,8 @@ const renderNavbarSignInForm = function() {
         <input type="hidden" name="_csrf" value={this.props.csrf}/>
         <input type="text" id="sign-in-name" name="user" placeholder="Username" className="form-control"/>
         <input type="password" id="sign-in-pass" name="pass" placeholder="Password" className="form-control"/>
-        <button type="submit" className="btn btn-success form-control" onClick={this.handleSignIn}>Log In</button>
-        <button className="btn btn-primary form-control" onClick={this.handleSignUp}>Sign Up</button>
+        <button id="navbar-log-in" type="submit" className="btn btn-success form-control" onClick={this.handleSignIn}>Log In</button>
+        <button id="navbar-sign-up" className="btn btn-primary form-control" onClick={this.handleSignUp}>Sign Up</button>
       </form>
     </div>
   );
@@ -31,6 +31,7 @@ const renderNavbarAccountInfo = function() {
             aria-expanded="false">Hello, {this.state.username} <span className="caret"></span>
         </a>
         <ul className="dropdown-menu">
+          <li><a href="/account">Account</a></li>
           <li><a href="/change-password">Change Password</a></li>
           <li role="separator" className="divider"></li>
           <li><a href="/logout">Log Out</a></li>

@@ -1,5 +1,6 @@
 const models = require('../models');
 const shared = require('./shared.js');
+const github = require('../github.js');
 
 const Account = models.Account;
 
@@ -22,6 +23,13 @@ const renderSignUpPage = (req, res) => {
 // Renders the change password page
 const renderChangePasswordPage = (req, res) => {
   shared.renderPage(req, res, 'change-password', {
+    error: req.renderError,
+  });
+};
+
+// Renders the account page
+const renderAccountPage = (req, res) => {
+  shared.renderPage(req, res, 'account', {
     error: req.renderError,
   });
 };
@@ -153,6 +161,7 @@ module.exports = {
   renderLogInPage,
   renderSignUpPage,
   renderChangePasswordPage,
+  renderAccountPage,
   logIn,
   logOut,
   signUp,
