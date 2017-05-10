@@ -3,9 +3,17 @@
 var editor = void 0,
     session = void 0,
     sessionDoc = void 0;
-var socket = void 0;
+var socket = void 0,
+    room = void 0;
 
 $(document).ready(function () {
+  room = document.querySelector('#room-id').innerHTML;
+  if (Number.parseInt(room) == -1) {
+    document.querySelector('#editor').innerHTML = '<h3>Invalid Room ID</h3>';
+    return;
+  }
+  window.history.replaceState('', 'Abeditor', '/edit/' + room);
+
   socket = io.connect();
 
   // Handle the log out button being clicked
@@ -74,7 +82,7 @@ $(document).ready(function () {
     socket.emit('input', { delta: delta });
   });
 
-  socket.emit('join');
+  socket.emit('join', { room: room });
 });
 'use strict';
 

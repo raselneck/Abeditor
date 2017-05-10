@@ -73,8 +73,15 @@ httpServer.listen(port, (err) => {
   console.log(`Abeditor is now running at http://localhost:${port}/`);
 });
 
-const users = {};
-let text = '';
+class Room {
+  constructor(name) {
+    this.name = name;
+    this.users = {};
+    this.text = '';
+  }
+}
+
+const rooms = {};
 
 const actions = {
   insert: 0,
@@ -84,30 +91,41 @@ Object.freeze(actions);
 
 const onJoin = (sock) => {
   const socket = sock;
-  socket.on('join', () => {
+  socket.on('join', (data) => {
+    if (data.room && rooms[data.room]) {
+      socket.room = data.room;
+    } else {
+      socket.emit('err', 'Invalid room id');
+      return;
+    }
+    socket.join(socket.room);
+
+    const room = rooms[socket.room];
     let id;
-    do { id = Math.random() * 20; } while (users[id]);
-    socket.emit('join', { id, text });
+    do { id = Math.random() * 20; } while (room.users[id]);
+    socket.emit('join', { id, text: room.text });
   });
 };
 
 const onInput = (sock) => {
   const socket = sock;
   socket.on('input', (data) => {
+    const room = rooms[socket.room];
     const delta = data.delta;
     switch (delta.action) {
       case actions.insert:
-        text = text.substring(0, delta.start.index)
-                + delta.lines + text.substring(delta.start.index
-                + delta.lines.length);
+        room.text = room.text.substring(0, delta.start.index)
+                  + delta.lines + room.text.substring(delta.start.index
+                  + delta.lines.length);
         break;
       case actions.remove:
-        text = text.substring(0, delta.start.index) + text.substring(delta.end.index);
+        room.text = room.text.substring(0, delta.start.index)
+                  + room.text.substring(delta.end.index);
         break;
       default:
         break;
     }
-    socket.broadcast.to('room1').emit('update', { delta: data.delta });
+    socket.broadcast.to(socket.room).emit('update', { delta: data.delta });
   });
 };
 
@@ -115,14 +133,41 @@ const onDisconnect = (sock) => {
   const socket = sock;
   socket.on('disconnect', (data) => {
     // check that the user successfully joined before deleting
-    if (users[data.id]) delete users[data.id];
+    if (!socket.room) return;
+    const room = rooms[socket.room];
+    if (room && room.users[data.id]) delete room.users[data.id];
   });
 };
 
 io.sockets.on('connection', (socket) => {
   console.log('started');
-  socket.join('room1');
   onJoin(socket);
   onInput(socket);
   onDisconnect(socket);
+});
+
+app.get('/edit', (req, res) => {
+  const randChar = () => {
+    const s = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    return s.charAt(Math.floor(Math.random() * s.length));
+  };
+
+  const randName = (n) => {
+    let str = '';
+    for (let i = n; i > 0; --i) {
+      str += randChar();
+    }
+    return str;
+  };
+
+  let id;
+  do { id = randName(5); } while (rooms[id]);
+  rooms[id] = new Room(id);
+  res.room = id;
+  router.dashboard_func(req, res);
+});
+
+app.get('/edit/:room', (req, res) => {
+  res.room = rooms[req.room] ? req.room : '-1';
+  router.dashboard_func(req, res);
 });

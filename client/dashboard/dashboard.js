@@ -1,7 +1,14 @@
 let editor, session, sessionDoc;
-let socket;
+let socket, room;
 
 $(document).ready(() => {
+  room = document.querySelector('#room-id').innerHTML;
+  if(Number.parseInt(room) == -1) {
+    document.querySelector('#editor').innerHTML = '<h3>Invalid Room ID</h3>';
+    return;
+  }
+  window.history.replaceState('','Abeditor',`/edit/${room}`);
+
   socket = io.connect();
 
   // Handle the log out button being clicked
@@ -71,5 +78,5 @@ $(document).ready(() => {
     socket.emit('input', { delta });
   });
 
-  socket.emit('join');
+  socket.emit('join', { room });
 });

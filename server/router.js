@@ -15,7 +15,7 @@ router.get('/login', mid.skipIfSignedIn, account.renderLogInPage);
 router.get('/change-password', mid.requiresAccount, account.renderChangePasswordPage);
 router.get('/get-csrf-token', account.getToken);
 
-router.get('/dashboard', /* mid.requiresAccount,*/ dashboard.renderDashboard);
+router.dashboard_func = (req, res) => { /* mid.requiresAccount,*/ dashboard.renderDashboard(req, res); };
 
 router.post('/login', account.logIn);
 router.post('/signup', account.signUp);
