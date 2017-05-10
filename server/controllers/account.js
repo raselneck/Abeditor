@@ -1,7 +1,25 @@
 const models = require('../models');
 const shared = require('./shared.js');
+const github = require('../github.js');
+const request = require('request');
+const querystring = require('querystring');
 
 const Account = models.Account;
+
+// Parses body text into an object
+const parseBodyText = (body) => {
+  const data = {};
+
+  const bodyParts = body.split('&');
+  for (let i = 0; i < bodyParts.length; ++i) {
+    const pair = bodyParts[i].split('=');
+    const name = querystring.unescape(pair[0]);
+    const value = querystring.unescape(pair[1]).replace(/\+/g, ' ');
+    data[name] = value;
+  }
+
+  return data;
+};
 
 // Renders the log in page
 const renderLogInPage = (req, res) => {
@@ -23,6 +41,61 @@ const renderSignUpPage = (req, res) => {
 const renderChangePasswordPage = (req, res) => {
   shared.renderPage(req, res, 'change-password', {
     error: req.renderError,
+  });
+};
+
+// Renders the account page
+const renderAccountPage = (req, res) => {
+  shared.renderPage(req, res, 'account', {
+    error: req.renderError,
+  });
+};
+
+// Begins the GitHub Connect process
+const beginGitHubConnect = (req, res) => {
+  const scope = 'gist';
+  const clientID = github.clientID;
+  const url = `https://github.com/login/oauth/authorize?scope=${scope}&client_id=${clientID}`;
+  return res.redirect(url);
+};
+
+// Handles the GitHub Connect callback
+const handleGitHubCallback = (req_, res) => {
+  const req = req_;
+  const code = req.query.code; // We need to pass this back to GitHub
+
+  const options = {
+    url: 'https://github.com/login/oauth/access_token',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    form: {
+      client_id: github.clientID,
+      client_secret: github.clientSecret,
+      code,
+      accept: 'application/json',
+    },
+  };
+
+  request(options, (err, response, body) => {
+    // Now we need to parse the body
+    const data = parseBodyText(body);
+    console.dir(data);
+
+    if (data.scope === 'gist') {
+      // Now we need to update the user's access token
+      const username = req.session.account.name;
+      const token = data.access_token;
+      Account.updateToken(username, token, (err2) => {
+        if (!err2) {
+          req.session.account.githubToken = token;
+        }
+        res.redirect('/account');
+      });
+    } else {
+      res.redirect('/account');
+    }
   });
 };
 
@@ -153,6 +226,9 @@ module.exports = {
   renderLogInPage,
   renderSignUpPage,
   renderChangePasswordPage,
+  renderAccountPage,
+  beginGitHubConnect,
+  handleGitHubCallback,
   logIn,
   logOut,
   signUp,

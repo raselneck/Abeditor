@@ -7,6 +7,8 @@ const renderPage = (req, res, page, options) => {
     opt.account = {
       username: account.username,
       id: account._id,
+      githubName: account.githubName,
+      githubToken: account.githubToken,
     };
   }
 

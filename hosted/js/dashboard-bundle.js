@@ -331,12 +331,12 @@ var renderNavbarSignInForm = function renderNavbarSignInForm() {
       React.createElement("input", { type: "password", id: "sign-in-pass", name: "pass", placeholder: "Password", className: "form-control" }),
       React.createElement(
         "button",
-        { type: "submit", className: "btn btn-success form-control", onClick: this.handleSignIn },
+        { id: "navbar-log-in", type: "submit", className: "btn btn-success form-control", onClick: this.handleSignIn },
         "Log In"
       ),
       React.createElement(
         "button",
-        { className: "btn btn-primary form-control", onClick: this.handleSignUp },
+        { id: "navbar-sign-up", className: "btn btn-primary form-control", onClick: this.handleSignUp },
         "Sign Up"
       )
     )
@@ -367,6 +367,15 @@ var renderNavbarAccountInfo = function renderNavbarAccountInfo() {
       React.createElement(
         "ul",
         { className: "dropdown-menu" },
+        React.createElement(
+          "li",
+          null,
+          React.createElement(
+            "a",
+            { href: "/account" },
+            "Account"
+          )
+        ),
         React.createElement(
           "li",
           null,

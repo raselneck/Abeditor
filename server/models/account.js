@@ -31,6 +31,13 @@ const AccountSchema = new mongoose.Schema({
   githubToken: {
     type: String,
     trim: true,
+    default: '',
+  },
+
+  githubName: {
+    type: String,
+    trim: true,
+    default: '',
   },
 
   salt: {
@@ -66,7 +73,9 @@ const validatePassword = (doc, password, callback) => {
 // Helper method for converting an account to its session equivalent
 AccountSchema.statics.toSession = doc => ({
   username: doc.username,
-  /* email: doc.email,*/
+  email: doc.email,
+  githubToken: doc.githubToken,
+  githubName: doc.githubName,
   _id: doc._id,
 });
 
@@ -123,7 +132,7 @@ AccountSchema.statics.changePassword = (username, oldPassword, newPassword, call
     }
 
     if (!account) {
-      const message = `Failed to aithenticate ${username}.`;
+      const message = `Failed to authenticate ${username}.`;
       return callback(new Error(message));
     }
 
@@ -138,6 +147,26 @@ AccountSchema.statics.changePassword = (username, oldPassword, newPassword, call
         .then(() => callback())
         .catch(err2 => callback(err2));
     });
+  });
+
+// Updates a user's GitHub token
+AccountSchema.statics.updateToken = (username, token, callback) =>
+  AccountModel.findByUsername(username, (err, account_) => {
+    const account = account_;
+
+    if (err) {
+      return callback(err);
+    }
+
+    if (!account) {
+      const message = `Failed to find user ${username}.`;
+      return callback(new Error(message));
+    }
+
+    account.githubToken = token;
+    return account.save()
+      .then(() => callback(undefined, account))
+      .catch(err2 => callback(err2));
   });
 
 // Create the account model

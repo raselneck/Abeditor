@@ -14,7 +14,7 @@ const http = require('http');
 const socketio = require('socket.io');
 
 const port = process.env.PORT || process.env.NODE_PORT || 3000;
-const dbUrl = process.env.MONGODB_URI || 'mongodb://localhost/Abeditor-v2';
+const dbUrl = process.env.MONGODB_URI || 'mongodb://localhost/Abeditor-v4';
 const hostedDir = path.resolve(__dirname, '..', 'hosted');
 const viewsDir = path.resolve(__dirname, 'views');
 

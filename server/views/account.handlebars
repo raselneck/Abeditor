@@ -25,8 +25,8 @@
           <a class="navbar-brand" href="/">Abeditor</a>
         </div>
         <div id="navbar" class="navbar-collapse collapse">
-          <div id="navbar-menu"></div>
-          <div id="navbar-data" class="navbar-right"></div>
+          <div id="navbar-data" class="navbar-right">
+          </div>
         </div>
       </div>
     </nav>
@@ -45,29 +45,34 @@
             data-ghtoken="{{account.githubToken}}">
       </div>
       {{/if}}
-      <div id="room-id">{{room}}</div>
     </div>
 
     <div class="container">
-      <!-- The info and error containers go here to match the width of the main content -->
-      <div id="info-container">
-        <div class="alert alert-info" role="alert">
-          <button type="button" class="close info-close" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-          <p id="info-message"></p>
+      <div class="col-md-2"></div>
+      <div class="col-md-8">
+        <!-- The info and error containers go here to match the width of the main content -->
+        <div id="info-container">
+          <div class="alert alert-info" role="alert">
+            <button type="button" class="close info-close" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+            <p id="info-message"></p>
+          </div>
         </div>
-      </div>
-      <div id="error-container">
-        <div class="alert alert-danger" role="alert">
-          <button type="button" class="close error-close" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-          <p id="error-message"></p>
+        <div id="error-container">
+          <div class="alert alert-danger" role="alert">
+            <button type="button" class="close error-close" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+            <p id="error-message"></p>
+          </div>
         </div>
-      </div>
 
-      <div id="editor"></div>
+        <!-- NOTE - This is where React will render the posts and post form -->
+        <div id="form-container">
+        </div>
+      </div>
+      <div class="col-md-2"></div>
     </div>
 
     <div class="container">
@@ -81,9 +86,6 @@
     <script type="text/javascript" src="/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="/js/react.min.js"></script>
     <script type="text/javascript" src="/js/react-dom.min.js"></script>
-    <script type="text/javascript" src="/js/filesaver.min.js"></script>
-    <script type="text/javascript" src="/js/ace/ace.js"></script>
-    <script src="/socket.io/socket.io.js"></script>
-    <script type="text/javascript" src="/js/dashboard-bundle.js"></script>
+    <script type="text/javascript" src="/js/account-bundle.js"></script>
   </body>
 </html>
