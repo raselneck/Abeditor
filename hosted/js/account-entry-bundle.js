@@ -284,6 +284,15 @@ var renderNavbarAccountInfo = function renderNavbarAccountInfo() {
           null,
           React.createElement(
             "a",
+            { href: "/account" },
+            "Account"
+          )
+        ),
+        React.createElement(
+          "li",
+          null,
+          React.createElement(
+            "a",
             { href: "/change-password" },
             "Change Password"
           )
