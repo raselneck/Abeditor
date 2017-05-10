@@ -62,9 +62,6 @@ app.use((err, req, res, next) => {
   return false;
 });
 
-// Link our router to our Express app
-app.use(router);
-
 // Start the Express app
 httpServer.listen(port, (err) => {
   if (err) {
@@ -78,10 +75,21 @@ class Room {
     this.name = name;
     this.users = {};
     this.text = '';
+    this.lastLogOff = new Date().getTime();
   }
 }
 
 const rooms = {};
+
+setInterval(() => {
+  Object.keys(rooms).forEach(room => {
+    const expireTime = 12 * 60 * 60 * 1000;
+    if(Object.keys(room.users).length === 0 
+    && new Date().getTime() - room.lastLogOff > expireTime) {
+      delete rooms[room.name];
+    }
+  });
+}, 10 * 60 * 1000);
 
 const actions = {
   insert: 0,
@@ -135,7 +143,10 @@ const onDisconnect = (sock) => {
     // check that the user successfully joined before deleting
     if (!socket.room) return;
     const room = rooms[socket.room];
-    if (room && room.users[data.id]) delete room.users[data.id];
+    if (room && room.users[data.id]) {
+      delete room.users[data.id];
+      room.lastLogOff = new Date().getTime();
+    }
   });
 };
 
@@ -146,7 +157,7 @@ io.sockets.on('connection', (socket) => {
   onDisconnect(socket);
 });
 
-app.get('/edit', (req, res) => {
+router.get('/edit', (req, res) => {
   const randChar = () => {
     const s = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     return s.charAt(Math.floor(Math.random() * s.length));
@@ -163,11 +174,19 @@ app.get('/edit', (req, res) => {
   let id;
   do { id = randName(5); } while (rooms[id]);
   rooms[id] = new Room(id);
-  res.room = id;
+  res.redirect(`/edit/${id}`);
+});
+
+router.get('/edit/:room', (req, res) => {
+  res.room = rooms[req.params.room] ? req.params.room : '-1';
   router.dashboard_func(req, res);
 });
 
-app.get('/edit/:room', (req, res) => {
-  res.room = rooms[req.room] ? req.room : '-1';
-  router.dashboard_func(req, res);
+// Handle 404 requests
+router.use((req, res) => {
+  console.log(`redirecting from '${req.originalUrl}'`);
+  res.redirect('/');
 });
+
+// Link our router to our Express app
+app.use(router);

@@ -18,16 +18,13 @@ router.get('/github-connect', mid.requiresSecure, mid.requiresAccountPost, accou
 router.get('/github-callback', mid.requiresSecure, mid.requiresAccountPost, account.handleGitHubCallback);
 router.get('/get-csrf-token', account.getToken);
 
-router.dashboard_func = (req, res) => { /* mid.requiresAccount,*/ dashboard.renderDashboard(req, res); };
+router.dashboard_func = (req, res) => { 
+    /* mid.requiresAccount,*/ 
+    dashboard.renderDashboard(req, res); 
+};
 
 router.post('/login', account.logIn);
 router.post('/signup', account.signUp);
 router.post('/change-password', mid.requiresSecure, mid.requiresAccountPost, account.changePassword);
-
-// Handle 404 requests
-router.use((req, res) => {
-  console.log(`redirecting from '${req.originalUrl}'`);
-  res.redirect('/');
-});
 
 module.exports = router;
