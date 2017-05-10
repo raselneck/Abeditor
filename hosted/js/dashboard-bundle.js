@@ -1,9 +1,13 @@
 'use strict';
 
 var editor = void 0,
-    session = void 0;
+    session = void 0,
+    sessionDoc = void 0;
+var socket = void 0;
 
 $(document).ready(function () {
+  socket = io.connect();
+
   // Handle the log out button being clicked
   $('#logout').click(function () {
     window.location = '/logout';
@@ -15,11 +19,62 @@ $(document).ready(function () {
   session = editor.getSession();
   session.setMode("ace/mode/javascript");
 
-  var githubName = $('#account-info').attr('data-ghname');
-  var githubToken = $('#account-info').attr('data-ghtoken');
+  sessionDoc = session.getDocument();
 
-  console.log('github username: \'' + githubName + '\'');
-  console.log('github token: \'' + githubToken + '\'');
+  var actions = {
+    insert: 0,
+    remove: 1
+  };
+
+  var userEdit = true;
+
+  var uid = void 0;
+  socket.on('join', function (data) {
+    uid = data.id;
+    userEdit = false;
+    session.insert({ row: 0, column: 0 }, data.text);
+  });
+
+  socket.on('update', function (data) {
+    var delta = data.delta;
+    switch (delta.action) {
+      case actions.insert:
+        userEdit = false;
+        session.insert(delta.start, delta.lines);
+        break;
+      case actions.remove:
+        userEdit = false;
+        console.log(delta);
+        session.remove({ start: delta.start, end: delta.end });
+        break;
+    }
+  });
+
+  session.on('change', function (e) {
+    var userEdited = userEdit;
+    userEdit = true;
+    if (!userEdited) return;
+
+    var delta = {
+      action: actions[e.action]
+    };
+    switch (delta.action) {
+      case actions.insert:
+        delta.start = e.start;
+        delta.start.index = sessionDoc.positionToIndex(delta.start, 0);
+        delta.lines = e.lines.join('\n');
+        break;
+      case actions.remove:
+        delta.start = e.start;
+        delta.start.index = sessionDoc.positionToIndex(delta.start, 0);
+        delta.end = e.end;
+        delta.end.index = sessionDoc.positionToIndex(delta.end, 0);
+        break;
+    }
+    socket.emit('input', { delta: delta });
+  });
+
+  socket.emit('join');
 });
 'use strict';
 
@@ -33,220 +88,105 @@ var menu = void 0;
 
 var Menu = function () {
   // Create the menu by loading all of the elements and handling their events
-  function Menu(settings) {
+  function Menu(name) {
     _classCallCheck(this, Menu);
 
-    this.settings = settings;
-    this.file = {};
-    this.edit = {};
-
-    this.findElements();
-    this.handleEvents();
+    this.name = name;
   }
 
-  // Finds all of the elements necessary for this menu
-
-
   _createClass(Menu, [{
-    key: 'findElements',
-    value: function findElements() {
-      this.file.new = $('#file-new');
-      this.file.open = $('#file-open');
-      this.file.save = $('#file-save');
-
-      this.edit.cut = $('#edit-cut');
-      this.edit.copy = $('#edit-copy');
-      this.edit.paste = $('#edit-paste');
+    key: 'genElement',
+    value: function genElement() {
+      var el = document.createElement('li');
+      el.classList.add('dropdown');
+      el.innerHTML = '<a  href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">' + this.name + ' <span class="caret"></span></a><ul class="dropdown-menu"></ul>';
+      return el;
     }
 
-    // Handles all of the events for elements
+    // Finds all of the elements necessary for this menu
 
   }, {
-    key: 'handleEvents',
-    value: function handleEvents() {
-      this.file.new.click(this.onNew.bind(this));
-      this.file.open.click(this.onOpen.bind(this));
-      this.file.save.click(this.onSave.bind(this));
-
-      this.edit.cut.click(this.onCut.bind(this));
-      this.edit.copy.click(this.onCopy.bind(this));
-      this.edit.paste.click(this.onPaste.bind(this));
+    key: 'genElements',
+    value: function genElements() {
+      var el = this.genElement();
+      var items = el.querySelector('ul');
+      this.contents.forEach(function (item) {
+        var el = item.genElement();
+        switch (item.type) {
+          case Setting.types.misc:
+            $(el).click(function () {
+              return item.change();
+            });
+            break;
+        }
+        // no code for fields yet
+        items.appendChild(el);
+      });
+      return el;
     }
-
-    ///////////////////////////////////////////////////////////////////////////////////////
-    //
-    // File menu handlers
-    //
-
-    // Handles when File>New is clicked
-
-  }, {
-    key: 'onNew',
-    value: function onNew() {}
-
-    // Handles when File>Open is clicked
-
-  }, {
-    key: 'onOpen',
-    value: function onOpen() {}
-
-    // Handles when File>Save is clicked
-
-  }, {
-    key: 'onSave',
-    value: function onSave() {}
-
-    ///////////////////////////////////////////////////////////////////////////////////////
-    //
-    // Edit menu handlers
-    //
-
-    // Handles when Edit>Cut is clicked
-
-  }, {
-    key: 'onCut',
-    value: function onCut() {}
-
-    // Handles when Edit>Copy is clicked
-
-  }, {
-    key: 'onCopy',
-    value: function onCopy() {}
-
-    // Handles when Edit>Paste is clicked
-
-  }, {
-    key: 'onPaste',
-    value: function onPaste() {}
   }]);
 
   return Menu;
 }();
 
+Menu.split = 0;
+
+Menu.map = {};
+Menu.map.file = new Menu('File');
+Menu.map.edit = new Menu('Edit');
+//Menu.map.view = new Menu('View');
+
+Menu.list = [Menu.map.file, Menu.map.edit, Menu.map.view]; // display the menus in this order
+
+// if it's a string, it's a setting, otherwise it's a submenu or popup
+Menu.map.file.contents = ["newFile", "openFile", Menu.split, "saveFile"];
+Menu.map.edit.contents = ["softTabs", "tabSize"];
+
 // When the document is ready
-
-
 $(document).ready(function () {
+  Setting.config.forEach(function (val) {
+    return new Setting(val.name, val.type, val.display, val.def, val.change);
+  });
+
   // If there's nothing to render the menu into, then don't both rendering it
   var menuTarget = document.querySelector('#navbar-menu');
   if (!menuTarget) {
     return;
   }
 
-  // Render the menu
-  var renderMenu = function renderMenu() {
-    return React.createElement(
-      'ul',
-      { className: 'nav navbar-nav' },
-      React.createElement(
-        'li',
-        { className: 'dropdown' },
-        React.createElement(
-          'a',
-          { href: '#',
-            className: 'dropdown-toggle',
-            'data-toggle': 'dropdown',
-            role: 'button',
-            'aria-haspopup': 'true',
-            'aria-expanded': 'false' },
-          'File ',
-          React.createElement('span', { className: 'caret' })
-        ),
-        React.createElement(
-          'ul',
-          { className: 'dropdown-menu' },
-          React.createElement(
-            'li',
-            null,
-            React.createElement(
-              'a',
-              { href: '#', id: '#file-new' },
-              'New'
-            )
-          ),
-          React.createElement(
-            'li',
-            null,
-            React.createElement(
-              'a',
-              { href: '#', id: '#file-open' },
-              'Open'
-            )
-          ),
-          React.createElement('li', { role: 'separator', className: 'divider' }),
-          React.createElement(
-            'li',
-            null,
-            React.createElement(
-              'a',
-              { href: '#', id: '#file-save' },
-              'Save'
-            )
-          )
-        )
-      ),
-      React.createElement(
-        'li',
-        { className: 'dropdown' },
-        React.createElement(
-          'a',
-          { href: '#',
-            className: 'dropdown-toggle',
-            'data-toggle': 'dropdown',
-            role: 'button',
-            'aria-haspopup': 'true',
-            'aria-expanded': 'false' },
-          'Edit ',
-          React.createElement('span', { className: 'caret' })
-        ),
-        React.createElement(
-          'ul',
-          { className: 'dropdown-menu' },
-          React.createElement(
-            'li',
-            null,
-            React.createElement(
-              'a',
-              { href: '#', id: '#edit-cut' },
-              'Cut'
-            )
-          ),
-          React.createElement(
-            'li',
-            null,
-            React.createElement(
-              'a',
-              { href: '#', id: '#edit-copy' },
-              'Copy'
-            )
-          ),
-          React.createElement(
-            'li',
-            null,
-            React.createElement(
-              'a',
-              { href: '#', id: '#edit-paste' },
-              'Paste'
-            )
-          )
-        )
-      )
-    );
-  };
-
-  // Create the React menu class
-  var MenuClass = React.createClass({
-    displayName: 'MenuClass',
-
-    // Handles the class being rendered
-    render: renderMenu
+  Object.keys(Menu.map).forEach(function (key) {
+    var menu = Menu.map[key];
+    menu.contents.forEach(function (item, i) {
+      var fin = void 0;
+      if (item == Menu.split) fin = Setting.separator;else if (typeof item === 'string') fin = Setting.map[item];else fin = item;
+      menu.contents[i] = fin;
+    });
   });
 
-  // Render the menu
-  var menuRenderer = ReactDOM.render(React.createElement(MenuClass, null), menuTarget);
+  /*
+    // Render the menu
+    const renderMenu = function() {
+      return (
+        <ul className="nav navbar-nav"></ul>
+      );
+    };
+  
+    // Create the React menu class
+    const MenuClass = React.createClass({
+      // Handles the class being rendered
+      render: renderMenu,
+    });
+    */
 
-  // Load the menu
-  menu = new Menu();
+  // Render the menu
+  //const menuRenderer = ReactDOM.render(<MenuClass />, menuTarget);
+  var root = document.createElement('ul');
+  root.classList.add('nav');
+  root.classList.add('navbar-nav');
+  Object.keys(Menu.map).forEach(function (key) {
+    return root.appendChild(Menu.map[key].genElements());
+  });
+  menuTarget.appendChild(root);
 });
 'use strict';
 
@@ -255,18 +195,53 @@ var _createClass = function () { function defineProperties(target, props) { for 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var Setting = function () {
-    function Setting(name, display, def, change) {
+    function Setting(name, type, display, def, change) {
         _classCallCheck(this, Setting);
 
         this.name = name;
+        this.type = type;
         Setting.map[this.name] = this;
         this.display = display;
         this.change = change;
         this.default = def;
-        this.update(Setting.retrieve(this.name) || def); // values should be objects
+        if (this.type != Setting.types.misc && this.type != Setting.types.popup) this.update(Setting.retrieve(this.name) || def); // values should be objects
     }
 
     _createClass(Setting, [{
+        key: 'genElement',
+        value: function genElement() {
+            var _this = this;
+
+            var el = document.createElement('li');
+            var extra = void 0;
+            if (this.type == Setting.types.checkbox) {
+                extra = document.createElement('input');
+                extra.type = 'checkbox';
+                extra.checked = this.value;
+                extra.onchange = function () {
+                    return _this.update(extra.checked);
+                };
+            } else if (this.type == Setting.types.number) {
+                extra = document.createElement('input');
+                extra.type = 'text';
+                extra.value = this.value;
+                extra.onchange = function () {
+                    var val = Number.parseFloat(extra.value);
+                    if (!Number.isNaN(val)) _this.update(val);
+                };
+            } else if (this.type == Setting.types.text) {
+                extra = document.createElement('input');
+                extra.type = 'text';
+                extra.value = this.value;
+                extra.onchange = function () {
+                    return _this.update(extra.value);
+                };
+            }
+            el.innerHTML = '<a href="#">' + this.display + '</a>'; // replace later based on setting type
+            if (extra) el.querySelector('a').appendChild(extra);
+            return el;
+        }
+    }, {
         key: 'update',
 
 
@@ -289,19 +264,45 @@ var Setting = function () {
     return Setting;
 }();
 
+Setting.types = {
+    checkbox: 0,
+    number: 1,
+    text: 2,
+    popup: 3,
+    misc: 4
+};
+Object.freeze(Setting.types);
+
 Setting.map = {};
 
-Setting.config = [{ name: 'softTabs', display: 'Use Tabs', def: false, change: function change(value) {
+Setting.separator = function () {
+    var s = new Setting('sep', Setting.misc, '', '', function () {});
+    s.genElement = function () {
+        var el = document.createElement('li');
+        el.role = 'separator';
+        el.classList.add('divider');
+        return el;
+    };
+    return s;
+}();
+
+Setting.config = [{ name: 'newFile', type: Setting.types.misc, display: 'New', change: function change() {
+        return window.open(window.location.href);
+    } }, // adjust to open new instance
+{ name: 'openFile', type: Setting.types.misc, display: 'Open', change: function change() {
+        return window.open(window.location.href);
+    } }, // adjust for gist integration
+{ name: 'saveFile', type: Setting.types.misc, display: 'Save',
+    change: function change() {
+        return saveAs(new Blob([sessionDoc.getValue()], { type: "text/plain;charset=utf-8" }), "file.txt");
+    } }, // update with filename
+
+
+{ name: 'softTabs', type: Setting.types.checkbox, display: 'Use Tabs', def: false, change: function change(value) {
         return session.setUseSoftTabs(!value);
-    } }, { name: 'tabSize', display: 'Tab Size:', def: 4, change: function change(value) {
+    } }, { name: 'tabSize', type: Setting.types.number, display: 'Tab Size:', def: 4, change: function change(value) {
         return session.setTabSize(value);
     } }];
-
-window.addEventListener('load', function () {
-    Setting.config.forEach(function (val) {
-        return new Setting(val.name, val.display, val.def, val.change);
-    });
-});
 "use strict";
 
 // Renders the sign in form for the navbar
