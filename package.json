@@ -12,7 +12,7 @@
     "buildDashboardBundle": "babel ./client/dashboard ./client/shared --presets react --out-file ./hosted/js/dashboard-bundle.js",
     "buildPasswordBundle": "babel ./client/password ./client/shared --presets react --out-file ./hosted/js/password-bundle.js",
     "buildSplashBundle": "babel ./client/splash ./client/shared --presets react --out-file ./hosted/js/splash-bundle.js",
-    "watch": "concurrently \"npm run watchSplashBundle\" \"npm run watchEntryBundle\" \"npm run watchDashboardBundle\" \"npm run watchPasswordBundle\" && \"npm run watchAccountBundle\"",
+    "watch": "concurrently \"npm run watchSplashBundle\" \"npm run watchEntryBundle\" \"npm run watchDashboardBundle\" \"npm run watchPasswordBundle\" \"npm run watchAccountBundle\"",
     "watchAccountBundle": "babel --watch ./client/account/account.js ./client/shared --presets react --out-file ./hosted/js/account-bundle.js",
     "watchEntryBundle": "babel --watch ./client/account/entry.js ./client/shared --presets react --out-file ./hosted/js/entry-bundle.js",
     "watchDashboardBundle": "babel --watch ./client/dashboard ./client/shared --presets react --out-file ./hosted/js/dashboard-bundle.js",
@@ -41,7 +41,9 @@
     "express": "^4.15.2",
     "express-handlebars": "^3.0.0",
     "express-session": "^1.15.2",
+    "github": "^9.2.0",
     "mongoose": "^4.9.4",
+    "request": "^2.81.0",
     "serve-favicon": "^2.4.2",
     "socket.io": "^1.7.3",
     "underscore": "^1.8.3"

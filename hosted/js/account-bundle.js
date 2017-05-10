@@ -1,4 +1,75 @@
 "use strict";
+
+// Renders the connect-to-GitHub form
+var renderConnectForm = function renderConnectForm() {
+  return React.createElement(
+    "div",
+    null,
+    React.createElement(
+      "form",
+      { action: "/github-connect", method: "GET", id: "user-form" },
+      React.createElement("input", { type: "hidden", name: "_csrf", value: this.props.csrf }),
+      React.createElement(
+        "div",
+        { className: "form-group" },
+        React.createElement(
+          "label",
+          null,
+          "Currently not connected to GitHub."
+        )
+      ),
+      React.createElement(
+        "button",
+        { type: "submit", className: "btn btn-primary btn-block" },
+        "Connect"
+      )
+    )
+  );
+};
+
+// Renders GitHub connection info
+var renderConnectInfo = function renderConnectInfo() {
+  return React.createElement(
+    "div",
+    null,
+    React.createElement(
+      "p",
+      null,
+      React.createElement(
+        "strong",
+        null,
+        "You're connected to GitHub!"
+      )
+    )
+  );
+};
+
+// Checks to see if a string is valid
+var isValidString = function isValidString(str) {
+  return typeof str === 'string' && str !== '';
+};
+
+$(document).ready(function () {
+  var githubToken = $('#account-info').attr('data-ghtoken');
+  console.log("github token: '" + githubToken + "'");
+
+  // Get the form's CSRF token
+  getCsrfToken(function (token) {
+    // Check if we have GitHub credentials
+    var hasGitHubCredentials = isValidString(githubToken);
+
+    // Create the render class
+    var RenderClass = React.createClass({
+      displayName: "RenderClass",
+
+      render: hasGitHubCredentials ? renderConnectInfo : renderConnectForm
+    });
+
+    // Render the account page
+    var target = document.querySelector('#form-container');
+    var renderer = ReactDOM.render(React.createElement(RenderClass, { csrf: token }), target);
+  });
+});
 "use strict";
 
 // Renders the sign in form for the navbar
@@ -55,6 +126,15 @@ var renderNavbarAccountInfo = function renderNavbarAccountInfo() {
       React.createElement(
         "ul",
         { className: "dropdown-menu" },
+        React.createElement(
+          "li",
+          null,
+          React.createElement(
+            "a",
+            { href: "/account" },
+            "Account"
+          )
+        ),
         React.createElement(
           "li",
           null,

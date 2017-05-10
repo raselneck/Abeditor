@@ -1,6 +1,5 @@
 const crypto = require('crypto');
 const mongoose = require('mongoose');
-const github = require('../github.js');
 
 mongoose.Promise = global.Promise;
 
@@ -133,7 +132,7 @@ AccountSchema.statics.changePassword = (username, oldPassword, newPassword, call
     }
 
     if (!account) {
-      const message = `Failed to aithenticate ${username}.`;
+      const message = `Failed to authenticate ${username}.`;
       return callback(new Error(message));
     }
 
@@ -148,6 +147,26 @@ AccountSchema.statics.changePassword = (username, oldPassword, newPassword, call
         .then(() => callback())
         .catch(err2 => callback(err2));
     });
+  });
+
+// Updates a user's GitHub token
+AccountSchema.statics.updateToken = (username, token, callback) =>
+  AccountModel.findByUsername(username, (err, account_) => {
+    const account = account_;
+
+    if (err) {
+      return callback(err);
+    }
+
+    if (!account) {
+      const message = `Failed to find user ${username}.`;
+      return callback(new Error(message));
+    }
+
+    account.githubToken = token;
+    return account.save()
+      .then(() => callback(undefined, account))
+      .catch(err2 => callback(err2));
   });
 
 // Create the account model

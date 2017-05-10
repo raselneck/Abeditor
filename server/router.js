@@ -14,15 +14,20 @@ router.get('/signup', mid.requiresSecure, mid.skipIfSignedIn, account.renderSign
 router.get('/login', mid.requiresSecure, mid.skipIfSignedIn, account.renderLogInPage);
 router.get('/change-password', mid.requiresSecure, mid.requiresAccount, account.renderChangePasswordPage);
 router.get('/account', mid.requiresSecure, mid.requiresAccount, account.renderAccountPage);
+router.get('/github-connect', mid.requiresSecure, mid.requiresAccountPost, account.beginGitHubConnect);
+router.get('/github-callback', mid.requiresSecure, mid.requiresAccountPost, account.handleGitHubCallback);
 router.get('/get-csrf-token', account.getToken);
 
 router.get('/dashboard', dashboard.renderDashboard);
 
 router.post('/login', account.logIn);
 router.post('/signup', account.signUp);
-router.post('/change-password', mid.requiresAccountPost, account.changePassword);
+router.post('/change-password', mid.requiresSecure, mid.requiresAccountPost, account.changePassword);
 
 // Handle 404 requests
-router.use((req, res) => res.redirect('/'));
+router.use((req, res) => {
+  console.log(`redirecting from '${req.originalUrl}'`);
+  res.redirect('/');
+});
 
 module.exports = router;
