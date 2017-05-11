@@ -82,9 +82,9 @@ class Room {
 const rooms = {};
 
 setInterval(() => {
-  Object.keys(rooms).forEach(room => {
+  Object.keys(rooms).forEach((room) => {
     const expireTime = 12 * 60 * 60 * 1000;
-    if(Object.keys(room.users).length === 0 
+    if (Object.keys(room.users).length === 0
     && new Date().getTime() - room.lastLogOff > expireTime) {
       delete rooms[room.name];
     }

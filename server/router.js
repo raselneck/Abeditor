@@ -19,9 +19,9 @@ router.get('/github-callback', mid.requiresSecure, mid.requiresAccount, account.
 router.get('/github-revoke', mid.requiresSecure, mid.requiresAccount, account.revokeGitHubConnect);
 router.get('/get-csrf-token', account.getToken);
 
-router.dashboard_func = (req, res) => { 
-    /* mid.requiresAccount,*/ 
-    dashboard.renderDashboard(req, res); 
+router.dashboard_func = (req, res) => {
+    /* mid.requiresAccount,*/
+  dashboard.renderDashboard(req, res);
 };
 
 router.post('/login', account.logIn);

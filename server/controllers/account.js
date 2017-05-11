@@ -115,8 +115,8 @@ const revokeGitHubConnect = (req_, res) => {
   // https://developer.github.com/v3/oauth_authorizations/#revoke-an-authorization-for-an-application
   github.authenticate({
     type: 'basic',
-    username: github.clientID,
-    password: github.clientSecret,
+    username: clientID,
+    password: clientSecret,
   });
 
   // Revoke the application's permission

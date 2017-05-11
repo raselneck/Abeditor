@@ -3,7 +3,8 @@ const GitHubAPI = require('github');
 // Check if we're on a production server
 const isProduction = (process.env.NODE_ENV === 'production');
 
-let clientID, clientSecret;
+let clientID;
+let clientSecret;
 if (isProduction) {
   // Credentials for Abeditor
   clientID = 'a7cb0219a13041602c1f';
