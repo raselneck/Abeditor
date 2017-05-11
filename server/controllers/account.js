@@ -14,7 +14,7 @@ const parseBodyText = (body) => {
   for (let i = 0; i < bodyParts.length; ++i) {
     const pair = bodyParts[i].split('=');
     const name = querystring.unescape(pair[0]);
-    const value = querystring.unescape(pair[1]).replace(/\+/g, ' ');
+    const value = querystring.unescape(pair[1]).replace(/\+/g, ' ').trim();
     data[name] = value;
   }
 
@@ -81,21 +81,53 @@ const handleGitHubCallback = (req_, res) => {
   request(options, (err, response, body) => {
     // Now we need to parse the body
     const data = parseBodyText(body);
-    console.dir(data);
+    const username = req.session.account.username;
+    const token = data.access_token;
 
     if (data.scope === 'gist') {
       // Now we need to update the user's access token
-      const username = req.session.account.name;
-      const token = data.access_token;
       Account.updateToken(username, token, (err2) => {
         if (!err2) {
           req.session.account.githubToken = token;
+        } else {
+          console.log(`${username} didn't get an access token?`);
         }
         res.redirect('/account');
       });
     } else {
+      console.log(`${username} failed to approve the app!`);
       res.redirect('/account');
     }
+  });
+};
+
+// Revokes the connection to GitHub
+const revokeGitHubConnect = (req_, res) => {
+  const req = req_;
+
+  const token = req.session.account.githubToken;
+  const clientID = github.clientID;
+  const clientSecret = github.clientSecret;
+  const username = req.session.account.username;
+
+  // We need to perform "basic authentication" first
+  // See the relevant GitHub API documentation here:
+  // https://developer.github.com/v3/oauth_authorizations/#revoke-an-authorization-for-an-application
+  github.authenticate({
+    type: 'basic',
+    username: github.clientID,
+    password: github.clientSecret,
+  });
+
+  // Revoke the application's permission
+  github.authorization.revoke({
+    access_token: token,
+    client_id: clientID,
+  }, () => {
+    Account.updateToken(username, '', () => {
+      req.session.account.githubToken = '';
+      res.redirect('/account');
+    });
   });
 };
 
@@ -229,6 +261,7 @@ module.exports = {
   renderAccountPage,
   beginGitHubConnect,
   handleGitHubCallback,
+  revokeGitHubConnect,
   logIn,
   logOut,
   signUp,

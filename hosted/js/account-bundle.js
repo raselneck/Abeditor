@@ -8,7 +8,6 @@ var renderConnectForm = function renderConnectForm() {
     React.createElement(
       "form",
       { action: "/github-connect", method: "GET", id: "user-form" },
-      React.createElement("input", { type: "hidden", name: "_csrf", value: this.props.csrf }),
       React.createElement(
         "div",
         { className: "form-group" },
@@ -33,12 +32,21 @@ var renderConnectInfo = function renderConnectInfo() {
     "div",
     null,
     React.createElement(
-      "p",
-      null,
+      "form",
+      { action: "/github-revoke", method: "GET", id: "user-form" },
       React.createElement(
-        "strong",
-        null,
-        "You're connected to GitHub!"
+        "div",
+        { className: "form-group" },
+        React.createElement(
+          "label",
+          null,
+          "You're connected to GitHub!"
+        )
+      ),
+      React.createElement(
+        "button",
+        { type: "submit", className: "btn btn-danger btn-block" },
+        "Revoke"
       )
     )
   );
@@ -53,22 +61,19 @@ $(document).ready(function () {
   var githubToken = $('#account-info').attr('data-ghtoken');
   console.log("github token: '" + githubToken + "'");
 
-  // Get the form's CSRF token
-  getCsrfToken(function (token) {
-    // Check if we have GitHub credentials
-    var hasGitHubCredentials = isValidString(githubToken);
+  // Check if we have GitHub credentials
+  var hasGitHubCredentials = isValidString(githubToken);
 
-    // Create the render class
-    var RenderClass = React.createClass({
-      displayName: "RenderClass",
+  // Create the render class
+  var RenderClass = React.createClass({
+    displayName: "RenderClass",
 
-      render: hasGitHubCredentials ? renderConnectInfo : renderConnectForm
-    });
-
-    // Render the account page
-    var target = document.querySelector('#form-container');
-    var renderer = ReactDOM.render(React.createElement(RenderClass, { csrf: token }), target);
+    render: hasGitHubCredentials ? renderConnectInfo : renderConnectForm
   });
+
+  // Render the account page
+  var target = document.querySelector('#form-container');
+  var renderer = ReactDOM.render(React.createElement(RenderClass, null), target);
 });
 "use strict";
 
