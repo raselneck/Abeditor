@@ -10,7 +10,8 @@ class Menu {
   genElement() {
     let el = document.createElement('li');
     el.classList.add('dropdown');
-    el.innerHTML = `<a  href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">\
+    // https://cdn.meme.am/cache/images/folder826/600x600/16517826/principal-skinner-pathetic.jpg
+    el.innerHTML = `<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">\
 ${this.name} <span class="caret"></span>\
 </a><ul class="dropdown-menu"></ul>`;
     return el;
@@ -57,31 +58,16 @@ $(document).ready(() => {
     return;
   }
 
-    Object.keys(Menu.map).forEach(key => {
-        const menu = Menu.map[key];
-        menu.contents.forEach((item, i) => {
-          let fin;
-          if(item == Menu.split) fin = Setting.separator;
-          else if (typeof(item) === 'string') fin = Setting.map[item];
-          else fin = item;
-          menu.contents[i] = fin;
-        });
+  Object.keys(Menu.map).forEach(key => {
+    const menu = Menu.map[key];
+    menu.contents.forEach((item, i) => {
+      let fin;
+      if(item == Menu.split) fin = Setting.separator;
+      else if (typeof(item) === 'string') fin = Setting.map[item];
+      else fin = item;
+      menu.contents[i] = fin;
     });
-
-/*
-  // Render the menu
-  const renderMenu = function() {
-    return (
-      <ul className="nav navbar-nav"></ul>
-    );
-  };
-
-  // Create the React menu class
-  const MenuClass = React.createClass({
-    // Handles the class being rendered
-    render: renderMenu,
   });
-  */
 
   // Render the menu
   //const menuRenderer = ReactDOM.render(<MenuClass />, menuTarget);
@@ -90,4 +76,6 @@ $(document).ready(() => {
   root.classList.add('navbar-nav');
   Object.keys(Menu.map).forEach(key => root.appendChild(Menu.map[key].genElements()));
   menuTarget.appendChild(root);
+
+  initializeGistDialog();
 });

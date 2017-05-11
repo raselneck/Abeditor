@@ -1,3 +1,5 @@
+let hasSignedInUser = false;
+
 // Renders the sign in form for the navbar
 const renderNavbarSignInForm = function() {
   return (
@@ -120,6 +122,7 @@ const initNavbar = (token) => {
   const id = accountInfo.attr('data-id');
 
   if (username && id) {
+    hasSignedInUser = true;
     initNavbarAccount(username, id);
   } else {
     initNavbarSignIn();
