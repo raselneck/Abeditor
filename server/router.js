@@ -27,6 +27,7 @@ router.dashboard_func = (req, res) => {
 };
 
 router.post('/update-gist', mid.requiresAccountPost, gist.updateGist);
+router.post('/create-gist', mid.requiresAccountPost, gist.createGist);
 router.post('/login', account.logIn);
 router.post('/signup', account.signUp);
 router.post('/change-password', mid.requiresSecure, mid.requiresAccountPost, account.changePassword);

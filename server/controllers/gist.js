@@ -44,10 +44,7 @@ const updateGist = (req, res) => {
   });
 
   // Edit the gist
-  github.gists.edit(data, (err, response) => {
-    console.log('err:', err);
-    console.log('response:', response);
-
+  github.gists.edit(data, (err) => {
     if (err) {
       res.json({ error: 'Failed to save the gist :(' });
     } else {
@@ -56,7 +53,43 @@ const updateGist = (req, res) => {
   });
 };
 
+// Creates a gist
+const createGist = (req, res) => {
+  const githubToken = req.session.account.githubToken;
+  const name = req.body.name;
+  const text = req.body.text;
+
+  // Create the files object
+  const files = {};
+  files[name] = {
+    content: text,
+  };
+
+  // Create the data object
+  const data = {
+    files,
+    public: false,
+    description: 'Created using Abeditor',
+  };
+
+  // Authenticate the user
+  github.authenticate({
+    type: 'oauth',
+    token: githubToken,
+  });
+
+  // Attempt to create the gist
+  github.gists.create(data, (err, response) => {
+    if (err) {
+      res.json({ error: 'Failed to create the gist :(' });
+    } else {
+      res.json(response);
+    }
+  });
+};
+
 module.exports = {
   getAllGists,
   updateGist,
+  createGist,
 };
