@@ -71,6 +71,16 @@ const renderNoGitHubDialog = () => {
 const renderGistDialog = (self) => {
   const gists = self.state.gists;
 
+  if (gists.length === 0) {
+    return (
+      <div>
+        <p>Uh-oh! It looks like you may not have any gists.</p>
+        <p>If you do have gists, however, then you may need to re-authenticate&nbsp;
+        with GitHub over on the <a href="/account">account page</a>.</p>
+      </div>
+    );
+  }
+
   // Map each gist to an element
   const listElements = gists.map((gist) => {
     // Get all of the gist's files

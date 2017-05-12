@@ -52,7 +52,7 @@ $(document).ready(function () {
         break;
       case actions.remove:
         userEdit = false;
-        console.log(delta);
+        //console.log(delta);
         session.remove({ start: delta.start, end: delta.end });
         break;
     }
@@ -112,13 +112,15 @@ var readGistFile = function readGistFile(url, callback) {
 var loadCurrentGistFile = function loadCurrentGistFile() {
   var url = currentGistFile.raw_url;
   readGistFile(url, function (text) {
-    // TODO - Display the text in the editor
+    // Display the text in the editor
+    userEdit = false;
+    sessionDoc.setValue(text);
   });
 };
 
 // Saves the current gist file
 var saveCurrentGistFile = function saveCurrentGistFile() {
-  var text = 'TODO - Get the text from the editor';
+  var text = sessionDoc.getValue();
 
   // First we need a CSRF token
   getCsrfToken(function (token) {
@@ -164,6 +166,29 @@ var renderNoGitHubDialog = function renderNoGitHubDialog() {
 // Renders the gist dialog so that it shows a user's gists
 var renderGistDialog = function renderGistDialog(self) {
   var gists = self.state.gists;
+
+  if (gists.length === 0) {
+    return React.createElement(
+      'div',
+      null,
+      React.createElement(
+        'p',
+        null,
+        'Uh-oh! It looks like you may not have any gists.'
+      ),
+      React.createElement(
+        'p',
+        null,
+        'If you do have gists, however, then you may need to re-authenticate\xA0 with GitHub over on the ',
+        React.createElement(
+          'a',
+          { href: '/account' },
+          'account page'
+        ),
+        '.'
+      )
+    );
+  }
 
   // Map each gist to an element
   var listElements = gists.map(function (gist) {
@@ -339,13 +364,14 @@ Menu.split = 0;
 Menu.map = {};
 Menu.map.file = new Menu('File');
 Menu.map.edit = new Menu('Edit');
-//Menu.map.view = new Menu('View');
+Menu.map.view = new Menu('View');
 
 Menu.list = [Menu.map.file, Menu.map.edit, Menu.map.view]; // display the menus in this order
 
 // if it's a string, it's a setting, otherwise it's a submenu or popup
 Menu.map.file.contents = ["newFile", "openFile", Menu.split, "saveFile", "saveGist"];
 Menu.map.edit.contents = ["softTabs", "tabSize"];
+Menu.map.view.contents = ["theme", "language"];
 
 // When the document is ready
 $(document).ready(function () {
@@ -485,7 +511,24 @@ Setting.config = [{ name: 'newFile', type: Setting.types.misc, display: 'New', c
   change: function change() {
     return saveAs(new Blob([sessionDoc.getValue()], { type: "text/plain;charset=utf-8" }), "file.txt");
   } }, // update with filename
-{ name: 'saveGist', type: Setting.types.misc, display: 'Save Gist', change: saveCurrentGistFile }, { name: 'softTabs', type: Setting.types.checkbox, display: 'Use Tabs', def: false, change: function change(value) {
+{ name: 'saveGist', type: Setting.types.misc, display: 'Save Gist', change: saveCurrentGistFile }, { name: 'theme', type: Setting.types.text, display: 'Theme',
+  change: function change(value) {
+    try {
+      editor.setTheme('ace/theme/' + value);
+    } catch (e) {
+      console.log('Invalid theme: ' + value);
+    }
+  } }, // TODO fix with list
+{ name: 'language', type: Setting.types.text, display: 'Language',
+  change: function change(value) {
+    try {
+      session.setMode('ace/mode/' + value);
+    } catch (e) {
+      console.log('Invalid language: ' + value);
+    }
+  } }, // TODO fix with list
+
+{ name: 'softTabs', type: Setting.types.checkbox, display: 'Use Tabs', def: false, change: function change(value) {
     return session.setUseSoftTabs(!value);
   } }, { name: 'tabSize', type: Setting.types.number, display: 'Tab Size:', def: 4, change: function change(value) {
     return session.setTabSize(value);

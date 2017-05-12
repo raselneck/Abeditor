@@ -12,7 +12,11 @@ const getAllGists = (req, res) => {
 
   // Get the user's gists
   github.gists.getAll({}, (err, response) => {
-    const gists = response.data;
+    // Retrieve the gists
+    let gists = [];
+    if (!err) {
+      gists = response.data;
+    }
     res.json({ gists });
   });
 };
