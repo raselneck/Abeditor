@@ -110,226 +110,6 @@ $(document).ready(function () {
 });
 'use strict';
 
-var gistListRenderer = void 0;
-var currentGist = void 0;
-var currentGistFile = void 0;
-
-// Reads the given gist file
-var readGistFile = function readGistFile(url, callback) {
-  $.ajax({
-    cache: false,
-    type: 'GET',
-    url: url,
-    dataType: 'text',
-    success: function success(response, status, xhr) {
-      //console.log(response);
-      callback(response);
-    },
-    error: function error() {
-      displayError('Failed to read gist file.');
-      currentGist = undefined;
-      currentGistFile = undefined;
-    }
-  });
-};
-
-// Loads the current gist file
-var loadCurrentGistFile = function loadCurrentGistFile() {
-  var url = currentGistFile.raw_url;
-  readGistFile(url, function (text) {
-    // Display the text in the editor
-    filename.setting.update(currentGistFile.filename);
-    userEdit = false;
-    sessionDoc.setValue(text);
-  });
-};
-
-// Saves the current gist file
-var saveCurrentGistFile = function saveCurrentGistFile() {
-  var text = sessionDoc.getValue();
-
-  // First we need a CSRF token
-  getCsrfToken(function (token) {
-    if (currentGist && currentGistFile) {
-      var data = {
-        gist: currentGist,
-        file: currentGistFile,
-        text: text,
-        _csrf: token
-      };
-
-      // Update the gist
-      sendRequest('POST', '/update-gist', data, function (response) {
-        // Shouldn't really ever get here, but...
-        console.log('save response:', response);
-      });
-    } else {
-      var fileName = Setting.map.fileName.value;
-      var _data = {
-        text: text,
-        name: fileName,
-        _csrf: token
-      };
-
-      // Create the gist
-      sendRequest('POST', '/create-gist', _data, function (response) {
-        if (response.status === 200) {
-          currentGist = response.data.data;
-          currentGistFile = currentGist.files[fileName];
-          displayInfo('Successfully created new gist.');
-        } else {
-          displayError('Failed to create new gist.');
-        }
-      });
-    }
-  });
-};
-
-// Renders the "no user" dialog
-var renderNoUserDialog = function renderNoUserDialog() {
-  return React.createElement(
-    'p',
-    null,
-    'Uh-oh! You need an account to be able to use this.'
-  );
-};
-
-// Renders the dialog showing
-var renderNoGitHubDialog = function renderNoGitHubDialog() {
-  return React.createElement(
-    'p',
-    null,
-    'Oops! You\'ll need to ',
-    React.createElement(
-      'a',
-      { href: '/account' },
-      'connect to GitHub'
-    ),
-    ' to be able to use this.'
-  );
-};
-
-// Renders the gist dialog so that it shows a user's gists
-var renderGistDialog = function renderGistDialog(self) {
-  var gists = self.state.gists;
-
-  // Map each gist to an element
-  var listElements = gists.map(function (gist) {
-    // Get all of the gist's files
-    var gistFiles = [];
-    Object.keys(gist.files).forEach(function (fileKey) {
-      var file = gist.files[fileKey];
-
-      // Loads the current gist file
-      var loadFile = function loadFile() {
-        currentGist = gist;
-        currentGistFile = file;
-        loadCurrentGistFile();
-
-        $('#open-gist').modal('hide');
-      };
-
-      // Return the HTML for the gist file
-      var filename = file.filename;
-      var raw_url = file.raw_url;
-      gistFiles.push(React.createElement(
-        'div',
-        { className: 'gist-file' },
-        React.createElement(
-          'p',
-          null,
-          'Name: ',
-          filename
-        ),
-        React.createElement(
-          'p',
-          null,
-          React.createElement(
-            'a',
-            { href: '#', onClick: loadFile },
-            'Open'
-          )
-        )
-      ));
-    });
-
-    // Return the gist file list
-    return gistFiles;
-  });
-
-  return React.createElement(
-    'div',
-    { className: 'gists' },
-    listElements
-  );
-};
-
-// Shows the "Open Gist" dialog
-var openGistDialog = function openGistDialog() {
-  $('#open-gist').modal('show');
-};
-
-// Initializes the "Open Gist" dialog
-var initializeGistDialog = function initializeGistDialog() {
-  var emptyFunc = function emptyFunc() {};
-
-  // Gets the gists for a component
-  var getGistsForComponent = function getGistsForComponent(self, callback) {
-    getCsrfToken(function (token) {
-      sendRequest('POST', '/get-gists', { _csrf: token }, function (response) {
-        var gists = response.data.gists;
-        self.setState({ gists: gists });
-        callback();
-      });
-    });
-  };
-
-  // Checks to see if a string is valid
-  var isValidString = function isValidString(str) {
-    return typeof str === 'string' && str !== '';
-  };
-
-  // Get some account info
-  var accountName = $('#account-info').attr('data-username');
-  var accountToken = $('#account-info').attr('data-ghtoken');
-
-  // Define the gist list class
-  var GistListClass = React.createClass({
-    displayName: 'GistListClass',
-
-    // Loads the gists
-    loadGists: function loadGists(callback) {
-      if (isValidString(accountToken)) {
-        getGistsForComponent(this, callback || emptyFunc);
-      }
-    },
-
-    // Gets the initial state
-    getInitialState: function getInitialState() {
-      return { gists: [] };
-    },
-
-    // Renders the list
-    render: function render() {
-      if (!isValidString(accountName)) {
-        return renderNoUserDialog();
-      } else if (!isValidString(accountToken)) {
-        return renderNoGitHubDialog();
-      } else {
-        return renderGistDialog(this);
-      }
-    }
-  });
-
-  // Get the target to display the gists
-  var target = document.querySelector('#open-gist-body');
-
-  // Render the gist list
-  gistListRenderer = ReactDOM.render(React.createElement(GistListClass, null), target);
-  gistListRenderer.loadGists();
-};
-'use strict';
-
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -586,6 +366,249 @@ Setting.config = [{ name: 'fileName', type: Setting.types.text, def: "Filename.t
   } }, { name: 'tabSize', type: Setting.types.number, display: 'Tab Size:', def: 4, change: function change(value) {
     return session.setTabSize(value);
   } }];
+'use strict';
+
+var gistListRenderer = void 0;
+var currentGist = void 0;
+var currentGistFile = void 0;
+
+// Reads the given gist file
+var readGistFile = function readGistFile(url, callback) {
+  $.ajax({
+    cache: false,
+    type: 'GET',
+    url: url,
+    dataType: 'text',
+    success: function success(response, status, xhr) {
+      //console.log(response);
+      callback(response);
+    },
+    error: function error() {
+      displayError('Failed to read gist file.');
+      currentGist = undefined;
+      currentGistFile = undefined;
+    }
+  });
+};
+
+// Loads the current gist file
+var loadCurrentGistFile = function loadCurrentGistFile() {
+  var url = currentGistFile.raw_url;
+  readGistFile(url, function (text) {
+    // Display the text in the editor
+    filename.setting.update(currentGistFile.filename);
+    userEdit = false;
+    sessionDoc.setValue(text);
+  });
+};
+
+// Saves the current gist file
+var saveCurrentGistFile = function saveCurrentGistFile() {
+  var text = sessionDoc.getValue();
+
+  // First we need a CSRF token
+  getCsrfToken(function (token) {
+    if (currentGist && currentGistFile) {
+      var data = {
+        gist: currentGist,
+        file: currentGistFile,
+        text: text,
+        _csrf: token
+      };
+
+      // Update the gist
+      sendRequest('POST', '/update-gist', data, function (response) {
+        // Shouldn't really ever get here, but...
+        console.log('save response:', response);
+      });
+    } else {
+      var fileName = Setting.map.fileName.value;
+      var _data = {
+        text: text,
+        name: fileName,
+        _csrf: token
+      };
+
+      // Create the gist
+      sendRequest('POST', '/create-gist', _data, function (response) {
+        if (response.status === 200) {
+          currentGist = response.data.data;
+          currentGistFile = currentGist.files[fileName];
+          displayInfo('Successfully created new gist.');
+        } else {
+          displayError('Failed to create new gist.');
+        }
+      });
+    }
+  });
+};
+
+// Renders the "no user" dialog
+var renderNoUserDialog = function renderNoUserDialog() {
+  return React.createElement(
+    'p',
+    null,
+    'Uh-oh! You need an account to be able to use this.'
+  );
+};
+
+// Renders the dialog showing
+var renderNoGitHubDialog = function renderNoGitHubDialog() {
+  return React.createElement(
+    'p',
+    null,
+    'Oops! You\'ll need to ',
+    React.createElement(
+      'a',
+      { href: '/account' },
+      'connect to GitHub'
+    ),
+    ' to be able to use this.'
+  );
+};
+
+// Renders the gist dialog so that it shows a user's gists
+var renderGistDialog = function renderGistDialog(self) {
+  var gists = self.state.gists;
+
+  if (gists.length === 0) {
+    return React.createElement(
+      'div',
+      null,
+      React.createElement(
+        'p',
+        null,
+        'Uh-oh! It looks like you may not have any gists.'
+      ),
+      React.createElement(
+        'p',
+        null,
+        'If you do have gists, however, then you may need to re-authenticate\xA0 with GitHub over on the ',
+        React.createElement(
+          'a',
+          { href: '/account' },
+          'account page'
+        ),
+        '.'
+      )
+    );
+  }
+
+  // Map each gist to an element
+  var listElements = gists.map(function (gist) {
+    // Get all of the gist's files
+    var gistFiles = [];
+    Object.keys(gist.files).forEach(function (fileKey) {
+      var file = gist.files[fileKey];
+
+      // Loads the current gist file
+      var loadFile = function loadFile() {
+        currentGist = gist;
+        currentGistFile = file;
+        loadCurrentGistFile();
+
+        $('#open-gist').modal('hide');
+      };
+
+      // Return the HTML for the gist file
+      var filename = file.filename;
+      var raw_url = file.raw_url;
+      gistFiles.push(React.createElement(
+        'div',
+        { className: 'gist-file' },
+        React.createElement(
+          'p',
+          null,
+          'Name: ',
+          filename
+        ),
+        React.createElement(
+          'p',
+          null,
+          React.createElement(
+            'a',
+            { href: '#', onClick: loadFile },
+            'Open'
+          )
+        )
+      ));
+    });
+
+    // Return the gist file list
+    return gistFiles;
+  });
+
+  return React.createElement(
+    'div',
+    { className: 'gists' },
+    listElements
+  );
+};
+
+// Shows the "Open Gist" dialog
+var openGistDialog = function openGistDialog() {
+  $('#open-gist').modal('show');
+};
+
+// Initializes the "Open Gist" dialog
+var initializeGistDialog = function initializeGistDialog() {
+  var emptyFunc = function emptyFunc() {};
+
+  // Gets the gists for a component
+  var getGistsForComponent = function getGistsForComponent(self, callback) {
+    getCsrfToken(function (token) {
+      sendRequest('POST', '/get-gists', { _csrf: token }, function (response) {
+        var gists = response.data.gists;
+        self.setState({ gists: gists });
+        callback();
+      });
+    });
+  };
+
+  // Checks to see if a string is valid
+  var isValidString = function isValidString(str) {
+    return typeof str === 'string' && str !== '';
+  };
+
+  // Get some account info
+  var accountName = $('#account-info').attr('data-username');
+  var accountToken = $('#account-info').attr('data-ghtoken');
+
+  // Define the gist list class
+  var GistListClass = React.createClass({
+    displayName: 'GistListClass',
+
+    // Loads the gists
+    loadGists: function loadGists(callback) {
+      if (isValidString(accountToken)) {
+        getGistsForComponent(this, callback || emptyFunc);
+      }
+    },
+
+    // Gets the initial state
+    getInitialState: function getInitialState() {
+      return { gists: [] };
+    },
+
+    // Renders the list
+    render: function render() {
+      if (!isValidString(accountName)) {
+        return renderNoUserDialog();
+      } else if (!isValidString(accountToken)) {
+        return renderNoGitHubDialog();
+      } else {
+        return renderGistDialog(this);
+      }
+    }
+  });
+
+  // Get the target to display the gists
+  var target = document.querySelector('#open-gist-body');
+
+  // Render the gist list
+  gistListRenderer = ReactDOM.render(React.createElement(GistListClass, null), target);
+  gistListRenderer.loadGists();
+};
 'use strict';
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
