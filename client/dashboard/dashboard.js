@@ -47,7 +47,7 @@ $(document).ready(() => {
         break;
       case actions.remove:
         userEdit = false;
-        console.log(delta);
+        //console.log(delta);
         session.remove({ start: delta.start, end: delta.end });
         break;
     }

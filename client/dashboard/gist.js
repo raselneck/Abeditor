@@ -24,13 +24,15 @@ const readGistFile = (url, callback) => {
 const loadCurrentGistFile = () => {
   const url = currentGistFile.raw_url;
   readGistFile(url, (text) => {
-    // TODO - Display the text in the editor
+    // Display the text in the editor
+    userEdit = false;
+    sessionDoc.setValue(text);
   });
 };
 
 // Saves the current gist file
 const saveCurrentGistFile = () => {
-  const text = 'TODO - Get the text from the editor';
+  const text = sessionDoc.getValue();
 
   // First we need a CSRF token
   getCsrfToken((token) => {

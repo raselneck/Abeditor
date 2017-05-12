@@ -83,6 +83,10 @@ Setting.config = [
     change: () => saveAs(new Blob([sessionDoc.getValue()], { type: "text/plain;charset=utf-8" }), "file.txt") }, // update with filename
   { name: 'saveGist',  type: Setting.types.misc,   display: 'Save Gist',     change: saveCurrentGistFile},
 
+  { name: 'theme',     type: Setting.types.text,   display: 'Theme',         
+    change: value => { try { editor.setTheme(`ace/theme/${value}`); } catch(e) { console.log(`Invalid theme: ${value}`); } } }, // TODO fix with list
+  { name: 'language',  type: Setting.types.text,   display: 'Language',         
+    change: value => { try { session.setMode(`ace/mode/${value}`); }  catch(e) { console.log(`Invalid language: ${value}`); } } }, // TODO fix with list
 
   { name: 'softTabs',  type: Setting.types.checkbox, display: 'Use Tabs',  def: false, change: value => session.setUseSoftTabs(!value) },
   { name: 'tabSize',   type: Setting.types.number,   display: 'Tab Size:', def: 4,   change: value => session.setTabSize(value) }

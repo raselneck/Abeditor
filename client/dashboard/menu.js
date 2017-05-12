@@ -40,13 +40,14 @@ Menu.split = 0;
 Menu.map = {};
 Menu.map.file = new Menu('File');
 Menu.map.edit = new Menu('Edit');
-//Menu.map.view = new Menu('View');
+Menu.map.view = new Menu('View');
 
 Menu.list = [ Menu.map.file, Menu.map.edit, Menu.map.view ]; // display the menus in this order
 
  // if it's a string, it's a setting, otherwise it's a submenu or popup
 Menu.map.file.contents = [ "newFile", "openFile", Menu.split, "saveFile", "saveGist" ];
 Menu.map.edit.contents = [ "softTabs", "tabSize" ];
+Menu.map.view.contents = [ "theme", "language" ];
 
 // When the document is ready
 $(document).ready(() => {
