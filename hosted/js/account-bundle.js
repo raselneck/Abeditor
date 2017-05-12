@@ -59,7 +59,7 @@ var isValidString = function isValidString(str) {
 
 $(document).ready(function () {
   var githubToken = $('#account-info').attr('data-ghtoken');
-  console.log("github token: '" + githubToken + "'");
+  var githubName = $('#account-info').attr('data-ghname');
 
   // Check if we have GitHub credentials
   var hasGitHubCredentials = isValidString(githubToken);

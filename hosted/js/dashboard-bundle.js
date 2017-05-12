@@ -86,6 +86,8 @@ $(document).ready(function () {
 });
 'use strict';
 
+var gistListRenderer = void 0;
+
 // Renders the "no user" dialog
 var renderNoUserDialog = function renderNoUserDialog() {
   return React.createElement(
@@ -95,7 +97,7 @@ var renderNoUserDialog = function renderNoUserDialog() {
   );
 };
 
-// Renders the dialog showing 
+// Renders the dialog showing
 var renderNoGitHubDialog = function renderNoGitHubDialog() {
   return React.createElement(
     'p',
@@ -121,16 +123,22 @@ var renderGistDialog = function renderGistDialog() {
 
 // Shows the "Open Gist" dialog
 var openGistDialog = function openGistDialog() {
-  $('#open-gist').modal();
+  gistListRenderer.loadGists(function () {
+    $('#open-gist').modal();
+  });
 };
 
 // Initializes the "Open Gist" dialog
 var initializeGistDialog = function initializeGistDialog() {
+  var emptyFunc = function emptyFunc() {};
+
   // Gets the gists for a component
-  var getGistsForComponent = function getGistsForComponent(self) {
+  var getGistsForComponent = function getGistsForComponent(self, callback) {
     sendRequest('GET', '/get-gists', null, function (response) {
       var gists = response.data.gists;
+      console.log('retrieved gists:', gists);
       self.setState({ gists: gists });
+      callback();
     });
   };
 
@@ -148,8 +156,8 @@ var initializeGistDialog = function initializeGistDialog() {
     displayName: 'GistListClass',
 
     // Loads the gists
-    loadGists: function loadGists() {
-      getGistsForComponent(this);
+    loadGists: function loadGists(callback) {
+      getGistsForComponent(this, callback || emptyFunc);
     },
 
     // Gets the initial state
@@ -173,7 +181,7 @@ var initializeGistDialog = function initializeGistDialog() {
   var target = document.querySelector('#open-gist-body');
 
   // Render the gist list
-  ReactDOM.render(React.createElement(GistListClass, null), target);
+  gistListRenderer = ReactDOM.render(React.createElement(GistListClass, null), target);
 };
 'use strict';
 

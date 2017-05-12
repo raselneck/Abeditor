@@ -31,7 +31,7 @@ const isValidString = str => (typeof str === 'string') && (str !== '');
 
 $(document).ready(() => {
   const githubToken = $('#account-info').attr('data-ghtoken');
-  console.log(`github token: '${githubToken}'`);
+  const githubName = $('#account-info').attr('data-ghname');
 
   // Check if we have GitHub credentials
   const hasGitHubCredentials = isValidString(githubToken);

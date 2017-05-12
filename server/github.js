@@ -17,7 +17,7 @@ if (isProduction) {
 
 // Configure a GitHub API object
 const github = new GitHubAPI({
-  debug: false,
+  debug: !isProduction,
   protocol: 'https',
   host: 'api.github.com',
   headers: {

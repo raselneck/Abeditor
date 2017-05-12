@@ -150,7 +150,7 @@ AccountSchema.statics.changePassword = (username, oldPassword, newPassword, call
   });
 
 // Updates a user's GitHub token
-AccountSchema.statics.updateToken = (username, token, callback) =>
+AccountSchema.statics.updateGitHubToken = (username, token, callback) =>
   AccountModel.findByUsername(username, (err, account_) => {
     const account = account_;
 
@@ -164,6 +164,26 @@ AccountSchema.statics.updateToken = (username, token, callback) =>
     }
 
     account.githubToken = token;
+    return account.save()
+      .then(() => callback(undefined, account))
+      .catch(err2 => callback(err2));
+  });
+
+// Updates a user's GitHub username
+AccountSchema.statics.updateGitHubName = (username, name, callback) =>
+  AccountModel.findByUsername(username, (err, account_) => {
+    const account = account_;
+
+    if (err) {
+      return callback(err);
+    }
+
+    if (!account) {
+      const message = `Failed to find user ${username}.`;
+      return callback(new Error(message));
+    }
+
+    account.githubName = name;
     return account.save()
       .then(() => callback(undefined, account))
       .catch(err2 => callback(err2));

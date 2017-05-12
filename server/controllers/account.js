@@ -53,10 +53,61 @@ const renderAccountPage = (req, res) => {
 
 // Begins the GitHub Connect process
 const beginGitHubConnect = (req, res) => {
-  const scope = 'gist';
+  const scope = 'gist+user';
   const clientID = github.clientID;
   const url = `https://github.com/login/oauth/authorize?scope=${scope}&client_id=${clientID}`;
   return res.redirect(url);
+};
+
+// Handles when we've retrieved the user's information
+const getGitHubUserInfo = (req, res) => {
+  const accessToken = req.session.account.githubToken;
+
+  const options = {
+    url: `https://api.github.com/user?access_token=${accessToken}`,
+    method: 'GET',
+    headers: {
+      'User-Agent': 'Abeditor',
+    },
+  };
+
+  request(options, (err, response, body) => {
+    // There can't have been an error
+    const user = JSON.parse(body);
+    const githubName = user.login;
+    const username = req.session.account.username;
+
+    req.session.account.githubName = githubName;
+    Account.updateGitHubName(username, githubName, () => {
+      res.redirect('/account');
+    });
+  });
+};
+
+// Handles when the GitHub access token is retrieved
+const onGetGitHubAccessToken = (req, res, err, response, body) => {
+  // Now we need to parse the body
+  const data = parseBodyText(body);
+  const username = req.session.account.username;
+  const token = data.access_token;
+
+  if (data.scope === 'gist,user' || data.scope === 'user,gist') {
+    // Now we need to update the user's access token
+    Account.updateGitHubToken(username, token, (err2) => {
+      if (!err2) {
+        req.session.account.githubToken = token;
+
+        // Now we need to get the user's info
+        getGitHubUserInfo(req, res);
+      } else {
+        console.log(`${username} didn't get an access token?`);
+        res.redirect('/account');
+      }
+    });
+  } else {
+    console.log(`${username} failed to approve the app!`);
+    res.redirect('/account');
+  }
 };
 
 // Handles the GitHub Connect callback
@@ -79,25 +130,7 @@ const handleGitHubCallback = (req_, res) => {
   };
 
   request(options, (err, response, body) => {
-    // Now we need to parse the body
-    const data = parseBodyText(body);
-    const username = req.session.account.username;
-    const token = data.access_token;
-
-    if (data.scope === 'gist') {
-      // Now we need to update the user's access token
-      Account.updateToken(username, token, (err2) => {
-        if (!err2) {
-          req.session.account.githubToken = token;
-        } else {
-          console.log(`${username} didn't get an access token?`);
-        }
-        res.redirect('/account');
-      });
-    } else {
-      console.log(`${username} failed to approve the app!`);
-      res.redirect('/account');
-    }
+    onGetGitHubAccessToken(req, res, err, response, body);
   });
 };
 
@@ -124,7 +157,7 @@ const revokeGitHubConnect = (req_, res) => {
     access_token: token,
     client_id: clientID,
   }, () => {
-    Account.updateToken(username, '', () => {
+    Account.updateGitHubToken(username, '', () => {
       req.session.account.githubToken = '';
       res.redirect('/account');
     });
@@ -248,6 +281,23 @@ const changePassword = (req, res) => {
   });
 };
 
+// Gets a user's gists
+const getGists = (req, res) => {
+  const githubToken = req.session.account.githubToken;
+
+  // Authenticate the user
+  github.authenticate({
+    type: 'oauth',
+    token: githubToken,
+  });
+
+  // Get the user's gists
+  github.gists.getAll({}, (err, response) => {
+    const gists = response.data;
+    res.json({ gists });
+  });
+};
+
 // Gets a CSRF token
 const getToken = (req, res) => {
   const token = req.csrfToken();
@@ -266,5 +316,6 @@ module.exports = {
   logOut,
   signUp,
   changePassword,
+  getGists,
   getToken,
 };

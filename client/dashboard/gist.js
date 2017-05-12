@@ -1,3 +1,5 @@
+let gistListRenderer;
+
 // Renders the "no user" dialog
 const renderNoUserDialog = () => {
   return (
@@ -5,7 +7,7 @@ const renderNoUserDialog = () => {
   );
 };
 
-// Renders the dialog showing 
+// Renders the dialog showing
 const renderNoGitHubDialog = () => {
   return (
     <p>
@@ -22,16 +24,22 @@ const renderGistDialog = () => {
 
 // Shows the "Open Gist" dialog
 const openGistDialog = () => {
-  $('#open-gist').modal();
+  gistListRenderer.loadGists(() => {
+    $('#open-gist').modal();
+  });
 };
 
 // Initializes the "Open Gist" dialog
 const initializeGistDialog = () => {
+  const emptyFunc = () => {};
+
   // Gets the gists for a component
-  const getGistsForComponent = (self) => {
+  const getGistsForComponent = (self, callback) => {
     sendRequest('GET', '/get-gists', null, (response) => {
       const gists = response.data.gists;
+      console.log('retrieved gists:', gists);
       self.setState({ gists });
+      callback();
     });
   };
 
@@ -45,8 +53,8 @@ const initializeGistDialog = () => {
   // Define the gist list class
   const GistListClass = React.createClass({
     // Loads the gists
-    loadGists: function() {
-      getGistsForComponent(this);
+    loadGists: function(callback) {
+      getGistsForComponent(this, callback || emptyFunc);
     },
 
     // Gets the initial state
@@ -70,5 +78,5 @@ const initializeGistDialog = () => {
   const target = document.querySelector('#open-gist-body');
 
   // Render the gist list
-  ReactDOM.render(<GistListClass />, target);
+  gistListRenderer = ReactDOM.render(<GistListClass />, target);
 };
