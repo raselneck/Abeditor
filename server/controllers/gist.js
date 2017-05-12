@@ -19,10 +19,25 @@ const getAllGists = (req, res) => {
 
 // Updates the given gist
 const updateGist = (req, res) => {
+  const account = req.session.account;
+  if (!account) {
+    console.log('User not signed in!');
+    return res.status(400).json({ error: 'You are not signed in!' });
+  }
+
   const githubToken = req.session.account.githubToken;
   const gist = req.body.gist;
   const gistFile = req.body.file;
   const text = req.body.text;
+
+  if (!githubToken) {
+    console.log('User not connected to GitHub!');
+    return res.status(400).json({ error: 'You are not connected to GitHub!' });
+  }
+  if (!gist || !gistFile) {
+    console.log('No gist data specified!');
+    return res.status(400).json({ error: 'Cannot save to a non-existent gist!' });
+  }
 
   // Create the files object
   const files = {};
@@ -44,7 +59,7 @@ const updateGist = (req, res) => {
   });
 
   // Edit the gist
-  github.gists.edit(data, (err) => {
+  return github.gists.edit(data, (err) => {
     if (err) {
       res.json({ error: 'Failed to save the gist :(' });
     } else {
