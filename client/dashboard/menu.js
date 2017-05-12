@@ -24,7 +24,7 @@ ${this.name} <span class="caret"></span>\
     this.contents.forEach(item => {
       let el = item.genElement();
       switch(item.type) {
-        case Setting.types.misc: 
+        case Setting.types.misc:
           $(el).click(() => item.change());
           break;
       }
@@ -45,7 +45,7 @@ Menu.map.edit = new Menu('Edit');
 Menu.list = [ Menu.map.file, Menu.map.edit, Menu.map.view ]; // display the menus in this order
 
  // if it's a string, it's a setting, otherwise it's a submenu or popup
-Menu.map.file.contents = [ "newFile", "openFile", Menu.split, "saveFile" ];
+Menu.map.file.contents = [ "newFile", "openFile", Menu.split, "saveFile", "saveGist" ];
 Menu.map.edit.contents = [ "softTabs", "tabSize" ];
 
 // When the document is ready

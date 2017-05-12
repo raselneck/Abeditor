@@ -1,4 +1,53 @@
 let gistListRenderer;
+let currentGist;
+let currentGistFile;
+
+// Reads the given gist file
+const readGistFile = (url, callback) => {
+  $.ajax({
+    cache: false,
+    type: 'GET',
+    url,
+    dataType: 'text',
+    success: (response, status, xhr) => {
+      console.log(response);
+    },
+    error: () => {
+      displayError('Failed to read gist file.');
+      currentGist = undefined;
+      currentGistFile = undefined;
+    },
+  });
+};
+
+// Loads the current gist file
+const loadCurrentGistFile = () => {
+  const url = currentGistFile.raw_url;
+  readGistFile(url, (text) => {
+    // TODO - Display the text in the editor
+  });
+};
+
+// Saves the current gist file
+const saveCurrentGistFile = () => {
+  const text = 'TODO - Get the text from the editor';
+
+  // First we need a CSRF token
+  getCsrfToken((token) => {
+    const data = {
+      gist: currentGist,
+      file: currentGistFile,
+      text,
+      _csrf: token
+    };
+
+    // Update the gist
+    sendRequest('POST', '/update-gist', data, (response) => {
+      // Shouldn't really be here, but...
+      console.log('save response:', response);
+    });
+  });
+};
 
 // Renders the "no user" dialog
 const renderNoUserDialog = () => {
@@ -18,15 +67,50 @@ const renderNoGitHubDialog = () => {
 };
 
 // Renders the gist dialog so that it shows a user's gists
-const renderGistDialog = () => {
-  return (<p>ayy lmao</p>);
+const renderGistDialog = (self) => {
+  const gists = self.state.gists;
+
+  // Map each gist to an element
+  const listElements = gists.map((gist) => {
+    // Get all of the gist's files
+    const gistFiles = [];
+    Object.keys(gist.files).forEach((fileKey) => {
+      const file = gist.files[fileKey];
+
+      // Loads the current gist file
+      const loadFile = () => {
+        currentGist = gist;
+        currentGistFile = file;
+        loadCurrentGistFile();
+
+        $('#open-gist').modal('hide');
+      };
+
+      // Return the HTML for the gist file
+      const filename = file.filename;
+      const raw_url = file.raw_url;
+      gistFiles.push((
+        <div className="gist-file">
+          <p>Name: {filename}</p>
+          <p><a href="#" onClick={loadFile}>Open</a></p>
+        </div>
+      ));
+    });
+
+    // Return the gist file list
+    return gistFiles;
+  });
+
+  return (
+    <div className="gists">
+      {listElements}
+    </div>
+  );
 };
 
 // Shows the "Open Gist" dialog
 const openGistDialog = () => {
-  gistListRenderer.loadGists(() => {
-    $('#open-gist').modal();
-  });
+  $('#open-gist').modal('show');
 };
 
 // Initializes the "Open Gist" dialog
@@ -37,7 +121,6 @@ const initializeGistDialog = () => {
   const getGistsForComponent = (self, callback) => {
     sendRequest('GET', '/get-gists', null, (response) => {
       const gists = response.data.gists;
-      console.log('retrieved gists:', gists);
       self.setState({ gists });
       callback();
     });
@@ -69,7 +152,7 @@ const initializeGistDialog = () => {
       } else if (!isValidString(accountToken)) {
         return renderNoGitHubDialog();
       } else {
-        return renderGistDialog();
+        return renderGistDialog(this);
       }
     },
   });
@@ -79,4 +162,5 @@ const initializeGistDialog = () => {
 
   // Render the gist list
   gistListRenderer = ReactDOM.render(<GistListClass />, target);
+  gistListRenderer.loadGists();
 };

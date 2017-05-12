@@ -78,3 +78,15 @@ input[type="hidden"] + button {
 .clearfix {
   clear: both;
 }
+
+.gist-file {
+  padding: 14px;
+}
+
+.gist-file:hover {
+  background-color: #eee;
+}
+
+.gist-file + .gist-file {
+  border-top: 1px solid lightgrey;
+}

@@ -67,21 +67,22 @@ Setting.map = {};
 
 Setting.separator = (() => {
   let s = new Setting('sep',Setting.misc,'','',()=>{});
-  s.genElement = function() { 
+  s.genElement = function() {
     let el = document.createElement('li');
     el.role = 'separator';
     el.classList.add('divider');
-    return el; 
+    return el;
   };
   return s;
 })();
 
 Setting.config = [
   { name: 'newFile',   type: Setting.types.misc,   display: 'New',           change: () => window.open(window.location.href) }, // adjust to open new instance
-  { name: 'openFile',  type: Setting.types.misc,   display: 'Open',          change: openGistDialog }, // adjust for gist integration
-  { name: 'saveFile',  type: Setting.types.misc,   display: 'Save', 
+  { name: 'openFile',  type: Setting.types.misc,   display: 'Open',          change: openGistDialog },
+  { name: 'saveFile',  type: Setting.types.misc,   display: 'Save',
     change: () => saveAs(new Blob([sessionDoc.getValue()], { type: "text/plain;charset=utf-8" }), "file.txt") }, // update with filename
-  
+  { name: 'saveGist',  type: Setting.types.misc,   display: 'Save Gist',     change: saveCurrentGistFile},
+
 
   { name: 'softTabs',  type: Setting.types.checkbox, display: 'Use Tabs',  def: false, change: value => session.setUseSoftTabs(!value) },
   { name: 'tabSize',   type: Setting.types.number,   display: 'Tab Size:', def: 4,   change: value => session.setTabSize(value) }

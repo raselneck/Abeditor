@@ -281,23 +281,6 @@ const changePassword = (req, res) => {
   });
 };
 
-// Gets a user's gists
-const getGists = (req, res) => {
-  const githubToken = req.session.account.githubToken;
-
-  // Authenticate the user
-  github.authenticate({
-    type: 'oauth',
-    token: githubToken,
-  });
-
-  // Get the user's gists
-  github.gists.getAll({}, (err, response) => {
-    const gists = response.data;
-    res.json({ gists });
-  });
-};
-
 // Gets a CSRF token
 const getToken = (req, res) => {
   const token = req.csrfToken();
@@ -316,6 +299,5 @@ module.exports = {
   logOut,
   signUp,
   changePassword,
-  getGists,
   getToken,
 };

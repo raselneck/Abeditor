@@ -81,11 +81,21 @@ class Room {
 
 const rooms = {};
 
+// Gets the total user count in a room
+const getUserCount = (room) => {
+  if (room.users) {
+    return Object.keys(room.users).length;
+  }
+  return 0;
+};
+
 setInterval(() => {
   Object.keys(rooms).forEach((room) => {
     const expireTime = 12 * 60 * 60 * 1000;
-    if (Object.keys(room.users).length === 0
-    && new Date().getTime() - room.lastLogOff > expireTime) {
+    const time = new Date().getTime();
+
+    if (getUserCount(room) === 0
+    && time - room.lastLogOff > expireTime) {
       delete rooms[room.name];
     }
   });

@@ -4,6 +4,7 @@ const mid = require('./middleware.js');
 
 const account = controllers.account;
 const dashboard = controllers.dashboard;
+const gist = controllers.gist;
 const splash = controllers.splash;
 const router = ExpressRouter();
 
@@ -17,7 +18,7 @@ router.get('/account', mid.requiresSecure, mid.requiresAccount, account.renderAc
 router.get('/github-connect', mid.requiresSecure, mid.requiresAccount, account.beginGitHubConnect);
 router.get('/github-callback', mid.requiresSecure, mid.requiresAccount, account.handleGitHubCallback);
 router.get('/github-revoke', mid.requiresSecure, mid.requiresAccount, account.revokeGitHubConnect);
-router.get('/get-gists', account.getGists);
+router.get('/get-gists', gist.getAllGists);
 router.get('/get-csrf-token', account.getToken);
 
 router.dashboard_func = (req, res) => {
@@ -25,6 +26,7 @@ router.dashboard_func = (req, res) => {
   dashboard.renderDashboard(req, res);
 };
 
+router.post('/update-gist', mid.requiresAccountPost, gist.updateGist);
 router.post('/login', account.logIn);
 router.post('/signup', account.signUp);
 router.post('/change-password', mid.requiresSecure, mid.requiresAccountPost, account.changePassword);

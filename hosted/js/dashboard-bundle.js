@@ -87,6 +87,55 @@ $(document).ready(function () {
 'use strict';
 
 var gistListRenderer = void 0;
+var currentGist = void 0;
+var currentGistFile = void 0;
+
+// Reads the given gist file
+var readGistFile = function readGistFile(url, callback) {
+  $.ajax({
+    cache: false,
+    type: 'GET',
+    url: url,
+    dataType: 'text',
+    success: function success(response, status, xhr) {
+      console.log(response);
+    },
+    error: function error() {
+      displayError('Failed to read gist file.');
+      currentGist = undefined;
+      currentGistFile = undefined;
+    }
+  });
+};
+
+// Loads the current gist file
+var loadCurrentGistFile = function loadCurrentGistFile() {
+  var url = currentGistFile.raw_url;
+  readGistFile(url, function (text) {
+    // TODO - Display the text in the editor
+  });
+};
+
+// Saves the current gist file
+var saveCurrentGistFile = function saveCurrentGistFile() {
+  var text = 'TODO - Get the text from the editor';
+
+  // First we need a CSRF token
+  getCsrfToken(function (token) {
+    var data = {
+      gist: currentGist,
+      file: currentGistFile,
+      text: text,
+      _csrf: token
+    };
+
+    // Update the gist
+    sendRequest('POST', '/update-gist', data, function (response) {
+      // Shouldn't really be here, but...
+      console.log('save response:', response);
+    });
+  });
+};
 
 // Renders the "no user" dialog
 var renderNoUserDialog = function renderNoUserDialog() {
@@ -113,19 +162,63 @@ var renderNoGitHubDialog = function renderNoGitHubDialog() {
 };
 
 // Renders the gist dialog so that it shows a user's gists
-var renderGistDialog = function renderGistDialog() {
+var renderGistDialog = function renderGistDialog(self) {
+  var gists = self.state.gists;
+
+  // Map each gist to an element
+  var listElements = gists.map(function (gist) {
+    // Get all of the gist's files
+    var gistFiles = [];
+    Object.keys(gist.files).forEach(function (fileKey) {
+      var file = gist.files[fileKey];
+
+      // Loads the current gist file
+      var loadFile = function loadFile() {
+        currentGist = gist;
+        currentGistFile = file;
+        loadCurrentGistFile();
+
+        $('#open-gist').modal('hide');
+      };
+
+      // Return the HTML for the gist file
+      var filename = file.filename;
+      var raw_url = file.raw_url;
+      gistFiles.push(React.createElement(
+        'div',
+        { className: 'gist-file' },
+        React.createElement(
+          'p',
+          null,
+          'Name: ',
+          filename
+        ),
+        React.createElement(
+          'p',
+          null,
+          React.createElement(
+            'a',
+            { href: '#', onClick: loadFile },
+            'Open'
+          )
+        )
+      ));
+    });
+
+    // Return the gist file list
+    return gistFiles;
+  });
+
   return React.createElement(
-    'p',
-    null,
-    'ayy lmao'
+    'div',
+    { className: 'gists' },
+    listElements
   );
 };
 
 // Shows the "Open Gist" dialog
 var openGistDialog = function openGistDialog() {
-  gistListRenderer.loadGists(function () {
-    $('#open-gist').modal();
-  });
+  $('#open-gist').modal('show');
 };
 
 // Initializes the "Open Gist" dialog
@@ -136,7 +229,6 @@ var initializeGistDialog = function initializeGistDialog() {
   var getGistsForComponent = function getGistsForComponent(self, callback) {
     sendRequest('GET', '/get-gists', null, function (response) {
       var gists = response.data.gists;
-      console.log('retrieved gists:', gists);
       self.setState({ gists: gists });
       callback();
     });
@@ -172,7 +264,7 @@ var initializeGistDialog = function initializeGistDialog() {
       } else if (!isValidString(accountToken)) {
         return renderNoGitHubDialog();
       } else {
-        return renderGistDialog();
+        return renderGistDialog(this);
       }
     }
   });
@@ -182,6 +274,7 @@ var initializeGistDialog = function initializeGistDialog() {
 
   // Render the gist list
   gistListRenderer = ReactDOM.render(React.createElement(GistListClass, null), target);
+  gistListRenderer.loadGists();
 };
 'use strict';
 
@@ -247,7 +340,7 @@ Menu.map.edit = new Menu('Edit');
 Menu.list = [Menu.map.file, Menu.map.edit, Menu.map.view]; // display the menus in this order
 
 // if it's a string, it's a setting, otherwise it's a submenu or popup
-Menu.map.file.contents = ["newFile", "openFile", Menu.split, "saveFile"];
+Menu.map.file.contents = ["newFile", "openFile", Menu.split, "saveFile", "saveGist"];
 Menu.map.edit.contents = ["softTabs", "tabSize"];
 
 // When the document is ready
@@ -384,14 +477,11 @@ Setting.separator = function () {
 Setting.config = [{ name: 'newFile', type: Setting.types.misc, display: 'New', change: function change() {
     return window.open(window.location.href);
   } }, // adjust to open new instance
-{ name: 'openFile', type: Setting.types.misc, display: 'Open', change: openGistDialog }, // adjust for gist integration
-{ name: 'saveFile', type: Setting.types.misc, display: 'Save',
+{ name: 'openFile', type: Setting.types.misc, display: 'Open', change: openGistDialog }, { name: 'saveFile', type: Setting.types.misc, display: 'Save',
   change: function change() {
     return saveAs(new Blob([sessionDoc.getValue()], { type: "text/plain;charset=utf-8" }), "file.txt");
   } }, // update with filename
-
-
-{ name: 'softTabs', type: Setting.types.checkbox, display: 'Use Tabs', def: false, change: function change(value) {
+{ name: 'saveGist', type: Setting.types.misc, display: 'Save Gist', change: saveCurrentGistFile }, { name: 'softTabs', type: Setting.types.checkbox, display: 'Use Tabs', def: false, change: function change(value) {
     return session.setUseSoftTabs(!value);
   } }, { name: 'tabSize', type: Setting.types.number, display: 'Tab Size:', def: 4, change: function change(value) {
     return session.setTabSize(value);
