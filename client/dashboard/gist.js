@@ -60,8 +60,7 @@ const renderNoUserDialog = () => {
 const renderNoGitHubDialog = () => {
   return (
     <p>
-      Oops! You'll need to <a href="/account">connect to GitHub</a>
-      to be able to use this.
+      Oops! You'll need to <a href="/account">connect to GitHub</a> to be able to use this.
     </p>
   );
 };
@@ -119,10 +118,12 @@ const initializeGistDialog = () => {
 
   // Gets the gists for a component
   const getGistsForComponent = (self, callback) => {
-    sendRequest('GET', '/get-gists', null, (response) => {
-      const gists = response.data.gists;
-      self.setState({ gists });
-      callback();
+    getCsrfToken((token) => {
+      sendRequest('POST', '/get-gists', { _csrf: token }, (response) => {
+        const gists = response.data.gists;
+        self.setState({ gists });
+        callback();
+      });
     });
   };
 
@@ -137,7 +138,9 @@ const initializeGistDialog = () => {
   const GistListClass = React.createClass({
     // Loads the gists
     loadGists: function(callback) {
-      getGistsForComponent(this, callback || emptyFunc);
+      if (isValidString(accountToken)) {
+        getGistsForComponent(this, callback || emptyFunc);
+      }
     },
 
     // Gets the initial state

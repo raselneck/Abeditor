@@ -157,7 +157,7 @@ var renderNoGitHubDialog = function renderNoGitHubDialog() {
       { href: '/account' },
       'connect to GitHub'
     ),
-    'to be able to use this.'
+    ' to be able to use this.'
   );
 };
 
@@ -227,10 +227,12 @@ var initializeGistDialog = function initializeGistDialog() {
 
   // Gets the gists for a component
   var getGistsForComponent = function getGistsForComponent(self, callback) {
-    sendRequest('GET', '/get-gists', null, function (response) {
-      var gists = response.data.gists;
-      self.setState({ gists: gists });
-      callback();
+    getCsrfToken(function (token) {
+      sendRequest('POST', '/get-gists', { _csrf: token }, function (response) {
+        var gists = response.data.gists;
+        self.setState({ gists: gists });
+        callback();
+      });
     });
   };
 
@@ -249,7 +251,9 @@ var initializeGistDialog = function initializeGistDialog() {
 
     // Loads the gists
     loadGists: function loadGists(callback) {
-      getGistsForComponent(this, callback || emptyFunc);
+      if (isValidString(accountToken)) {
+        getGistsForComponent(this, callback || emptyFunc);
+      }
     },
 
     // Gets the initial state

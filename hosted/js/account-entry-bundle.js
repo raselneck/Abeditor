@@ -225,6 +225,8 @@ $(document).ready(function () {
 });
 "use strict";
 
+var hasSignedInUser = false;
+
 // Renders the sign in form for the navbar
 var renderNavbarSignInForm = function renderNavbarSignInForm() {
   return React.createElement(
@@ -395,6 +397,7 @@ var initNavbar = function initNavbar(token) {
   var id = accountInfo.attr('data-id');
 
   if (username && id) {
+    hasSignedInUser = true;
     initNavbarAccount(username, id);
   } else {
     initNavbarSignIn();
