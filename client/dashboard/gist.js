@@ -10,7 +10,8 @@ const readGistFile = (url, callback) => {
     url,
     dataType: 'text',
     success: (response, status, xhr) => {
-      console.log(response);
+      //console.log(response);
+      callback(response);
     },
     error: () => {
       displayError('Failed to read gist file.');
@@ -25,6 +26,7 @@ const loadCurrentGistFile = () => {
   const url = currentGistFile.raw_url;
   readGistFile(url, (text) => {
     // Display the text in the editor
+    filename.setting.update(currentGistFile.filename);
     userEdit = false;
     sessionDoc.setValue(text);
   });
@@ -36,18 +38,38 @@ const saveCurrentGistFile = () => {
 
   // First we need a CSRF token
   getCsrfToken((token) => {
-    const data = {
-      gist: currentGist,
-      file: currentGistFile,
-      text,
-      _csrf: token
-    };
+    if (currentGist && currentGistFile) {
+      const data = {
+        gist: currentGist,
+        file: currentGistFile,
+        text,
+        _csrf: token,
+      };
 
-    // Update the gist
-    sendRequest('POST', '/update-gist', data, (response) => {
-      // Shouldn't really be here, but...
-      console.log('save response:', response);
-    });
+      // Update the gist
+      sendRequest('POST', '/update-gist', data, (response) => {
+        // Shouldn't really ever get here, but...
+        console.log('save response:', response);
+      });
+    } else {
+      const fileName = Setting.map.fileName.value;
+      const data = {
+        text,
+        name: fileName,
+        _csrf: token,
+      };
+
+      // Create the gist
+      sendRequest('POST', '/create-gist', data, (response) => {
+        if (response.status === 200) {
+          currentGist = response.data.data;
+          currentGistFile = currentGist.files[fileName];
+          displayInfo('Successfully created new gist.');
+        } else {
+          displayError('Failed to create new gist.');
+        }
+      })
+    }
   });
 };
 

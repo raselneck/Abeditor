@@ -50,8 +50,8 @@ Menu.map.edit.contents = [ "softTabs", "tabSize" ];
 Menu.map.view.contents = [ "theme", "language" ];
 
 // When the document is ready
-$(document).ready(() => {
-  Setting.config.forEach(val => new Setting(val.name, val.type, val.display, val.def, val.change));
+Menu.ready = () => {
+  Setting.config.forEach(val => new Setting(val.name, val.type, val.display, val.def, val.options, val.change));
 
   // If there's nothing to render the menu into, then don't both rendering it
   const menuTarget = document.querySelector('#navbar-menu');
@@ -79,4 +79,4 @@ $(document).ready(() => {
   menuTarget.appendChild(root);
 
   initializeGistDialog();
-});
+};
