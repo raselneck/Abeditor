@@ -102,7 +102,7 @@ const createGist = (req, res) => {
   });
 
   // Attempt to create the gist
-  github.gists.create(data, (err, response) => {
+  return github.gists.create(data, (err, response) => {
     if (err) {
       res.status(400).json({ error: 'Failed to create the gist :(' });
     } else {
