@@ -1,6 +1,9 @@
 let editor, session, sessionDoc;
 let socket, room;
 
+let userEdit = true;
+let filename;
+
 $(document).ready(() => {
   room = document.querySelector('#room-id').innerHTML;
   if(Number.parseInt(room) == -1) {
@@ -17,19 +20,42 @@ $(document).ready(() => {
   });
 
   editor = ace.edit("editor");
-  editor.setTheme("ace/theme/monokai");
-
   session = editor.getSession();
-  session.setMode("ace/mode/javascript");
-
   sessionDoc = session.getDocument();
+
+  editor.setShowPrintMargin(false);
+
+  initializeGistDialog();
+
+  let filenameRoot = document.querySelector('#file-name');
+  filename = {
+    displayEl: filenameRoot.children[0],
+    inputEl: filenameRoot.children[1],
+    update: (value) => {
+      filename.inputEl.style.display = 'none';
+      filename.displayEl.style.display = 'initial';
+      filename.displayEl.innerHTML = value;
+    }
+  };
+
+  Menu.ready();
+
+  filename.setting = Setting.map['fileName'];
+  filename.displayEl.onclick = () => {
+    filename.displayEl.style.display = 'none';
+    filename.inputEl.style.display = 'initial';
+    filename.inputEl.value = filename.setting.value;
+    filename.inputEl.focus();
+  };
+  filename.inputEl.onchange = () => {
+    filename.setting.update(filename.inputEl.value);
+  };
+  filename.inputEl.addEventListener('focusout', filename.inputEl.onchange);
 
   const actions = {
     insert: 0,
     remove: 1
   };
-
-  let userEdit = true;
 
   let uid;
   socket.on('join', data => {

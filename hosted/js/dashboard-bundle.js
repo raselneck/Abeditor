@@ -6,6 +6,9 @@ var editor = void 0,
 var socket = void 0,
     room = void 0;
 
+var userEdit = true;
+var filename = void 0;
+
 $(document).ready(function () {
   room = document.querySelector('#room-id').innerHTML;
   if (Number.parseInt(room) == -1) {
@@ -22,19 +25,42 @@ $(document).ready(function () {
   });
 
   editor = ace.edit("editor");
-  editor.setTheme("ace/theme/monokai");
-
   session = editor.getSession();
-  session.setMode("ace/mode/javascript");
-
   sessionDoc = session.getDocument();
+
+  editor.setShowPrintMargin(false);
+
+  initializeGistDialog();
+
+  var filenameRoot = document.querySelector('#file-name');
+  filename = {
+    displayEl: filenameRoot.children[0],
+    inputEl: filenameRoot.children[1],
+    update: function update(value) {
+      filename.inputEl.style.display = 'none';
+      filename.displayEl.style.display = 'initial';
+      filename.displayEl.innerHTML = value;
+    }
+  };
+
+  Menu.ready();
+
+  filename.setting = Setting.map['fileName'];
+  filename.displayEl.onclick = function () {
+    filename.displayEl.style.display = 'none';
+    filename.inputEl.style.display = 'initial';
+    filename.inputEl.value = filename.setting.value;
+    filename.inputEl.focus();
+  };
+  filename.inputEl.onchange = function () {
+    filename.setting.update(filename.inputEl.value);
+  };
+  filename.inputEl.addEventListener('focusout', filename.inputEl.onchange);
 
   var actions = {
     insert: 0,
     remove: 1
   };
-
-  var userEdit = true;
 
   var uid = void 0;
   socket.on('join', function (data) {
@@ -98,7 +124,8 @@ var readGistFile = function readGistFile(url, callback) {
     url: url,
     dataType: 'text',
     success: function success(response, status, xhr) {
-      console.log(response);
+      //console.log(response);
+      callback(response);
     },
     error: function error() {
       displayError('Failed to read gist file.');
@@ -113,6 +140,7 @@ var loadCurrentGistFile = function loadCurrentGistFile() {
   var url = currentGistFile.raw_url;
   readGistFile(url, function (text) {
     // Display the text in the editor
+    filename.setting.update(currentGistFile.filename);
     userEdit = false;
     sessionDoc.setValue(text);
   });
@@ -124,18 +152,39 @@ var saveCurrentGistFile = function saveCurrentGistFile() {
 
   // First we need a CSRF token
   getCsrfToken(function (token) {
-    var data = {
-      gist: currentGist,
-      file: currentGistFile,
-      text: text,
-      _csrf: token
-    };
+    if (currentGist && currentGistFile) {
+      var data = {
+        gist: currentGist,
+        file: currentGistFile,
+        text: text,
+        _csrf: token
+      };
 
-    // Update the gist
-    sendRequest('POST', '/update-gist', data, function (response) {
-      // Shouldn't really be here, but...
-      console.log('save response:', response);
-    });
+      // Update the gist
+      sendRequest('POST', '/update-gist', data, function (response) {
+        // Shouldn't really ever get here, but...
+        console.log('save response:', response);
+      });
+    } else {
+      var fileName = Setting.map.fileName.value;
+      var _data = {
+        text: text,
+        name: fileName,
+        _csrf: token
+      };
+
+      // Create the gist
+      sendRequest('POST', '/create-gist', _data, function (response) {
+        if (response.status === 200) {
+          console.log(response);
+          currentGist = response.data.data;
+          currentGistFile = currentGist.files[fileName];
+          displayInfo('Successfully created new gist.');
+        } else {
+          displayError('Failed to create new gist.');
+        }
+      });
+    }
   });
 };
 
@@ -374,9 +423,9 @@ Menu.map.edit.contents = ["softTabs", "tabSize"];
 Menu.map.view.contents = ["theme", "language"];
 
 // When the document is ready
-$(document).ready(function () {
+Menu.ready = function () {
   Setting.config.forEach(function (val) {
-    return new Setting(val.name, val.type, val.display, val.def, val.change);
+    return new Setting(val.name, val.type, val.display, val.def, val.options, val.change);
   });
 
   // If there's nothing to render the menu into, then don't both rendering it
@@ -405,7 +454,7 @@ $(document).ready(function () {
   menuTarget.appendChild(root);
 
   initializeGistDialog();
-});
+};
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -413,15 +462,17 @@ var _createClass = function () { function defineProperties(target, props) { for 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var Setting = function () {
-  function Setting(name, type, display, def, change) {
+  function Setting(name, type, display, def, options, change) {
     _classCallCheck(this, Setting);
 
+    //console.log(name, type, display, def, options, change);
     this.name = name;
     this.type = type;
     Setting.map[this.name] = this;
     this.display = display;
     this.change = change;
     this.default = def;
+    this.options = options;
     if (this.type != Setting.types.misc && this.type != Setting.types.popup) this.update(Setting.retrieve(this.name) || def); // values should be objects
   }
 
@@ -443,6 +494,7 @@ var Setting = function () {
         extra = document.createElement('input');
         extra.type = 'text';
         extra.value = this.value;
+        extra.style.textAlign = 'center';
         extra.onchange = function () {
           var val = Number.parseFloat(extra.value);
           if (!Number.isNaN(val)) _this.update(val);
@@ -451,11 +503,22 @@ var Setting = function () {
         extra = document.createElement('input');
         extra.type = 'text';
         extra.value = this.value;
+        extra.style.textAlign = 'center';
+        extra.onchange = function () {
+          return _this.update(extra.value);
+        };
+      } else if (this.type == Setting.types.dropdown) {
+        extra = document.createElement('select');
+        this.options.forEach(function (opt) {
+          extra.innerHTML += '<option value="' + opt.value + '">' + opt.display + '</option>';
+        });
+        extra.value = this.value;
+        extra.style.textAlign = 'center';
         extra.onchange = function () {
           return _this.update(extra.value);
         };
       }
-      el.innerHTML = '<a href="#">' + this.display + '</a>'; // replace later based on setting type
+      el.innerHTML = '<a href="#" style="display: flex; justify-content: space-between"><p style="padding-right: 20px">' + this.display + '</p></a>'; // replace later based on setting type
       if (extra) el.querySelector('a').appendChild(extra);
       return el;
     }
@@ -486,15 +549,16 @@ Setting.types = {
   checkbox: 0,
   number: 1,
   text: 2,
-  popup: 3,
-  misc: 4
+  dropdown: 3,
+  popup: 4,
+  misc: 5
 };
 Object.freeze(Setting.types);
 
 Setting.map = {};
 
 Setting.separator = function () {
-  var s = new Setting('sep', Setting.misc, '', '', function () {});
+  var s = new Setting('sep', Setting.misc, '', '', null, function () {});
   s.genElement = function () {
     var el = document.createElement('li');
     el.role = 'separator';
@@ -504,14 +568,30 @@ Setting.separator = function () {
   return s;
 }();
 
-Setting.config = [{ name: 'newFile', type: Setting.types.misc, display: 'New', change: function change() {
-    return window.open(window.location.href);
+var strComp = function strComp(a, b) {
+  var as = a.toUpperCase(),
+      bs = b.toUpperCase();
+  if (as < bs) return -1;
+  if (as > bs) return 1;
+  return 0;
+};
+
+Setting.config = [{ name: 'fileName', type: Setting.types.text, def: "Filename.txt",
+  change: function change(value) {
+    filename.update(value);
+  } }, { name: 'newFile', type: Setting.types.misc, display: 'New', change: function change() {
+    return window.open('/edit');
   } }, // adjust to open new instance
-{ name: 'openFile', type: Setting.types.misc, display: 'Open', change: openGistDialog }, { name: 'saveFile', type: Setting.types.misc, display: 'Save',
+{ name: 'openFile', type: Setting.types.misc, display: 'Open', change: function change() {
+    return openGistDialog();
+  } }, { name: 'saveFile', type: Setting.types.misc, display: 'Save',
   change: function change() {
-    return saveAs(new Blob([sessionDoc.getValue()], { type: "text/plain;charset=utf-8" }), "file.txt");
+    return saveAs(new Blob([sessionDoc.getValue()], { type: "text/plain;charset=utf-8" }), Setting.map.fileName.value);
   } }, // update with filename
-{ name: 'saveGist', type: Setting.types.misc, display: 'Save Gist', change: saveCurrentGistFile }, { name: 'theme', type: Setting.types.text, display: 'Theme',
+{ name: 'saveGist', type: Setting.types.misc, display: 'Save Gist', change: function change() {
+    return saveCurrentGistFile();
+  } }, { name: 'theme', type: Setting.types.dropdown, display: 'Theme', def: 'monokai',
+  options: [{ display: 'Monokai', value: 'monokai' }, { display: 'Terminal', value: 'terminal' }, { display: 'X-Code', value: 'xcode' }, { display: 'Chrome', value: 'chrome' }, { display: 'Solarized Dark', value: 'solarized_dark' }, { display: 'Solarized Light', value: 'solarized_light' }],
   change: function change(value) {
     try {
       editor.setTheme('ace/theme/' + value);
@@ -519,7 +599,10 @@ Setting.config = [{ name: 'newFile', type: Setting.types.misc, display: 'New', c
       console.log('Invalid theme: ' + value);
     }
   } }, // TODO fix with list
-{ name: 'language', type: Setting.types.text, display: 'Language',
+{ name: 'language', type: Setting.types.dropdown, display: 'Language', def: 'javascript',
+  options: [{ display: 'Javascript', value: 'javascript' }, { display: 'Plain-text', value: 'plain_text' }, { display: 'C#', value: 'csharp' }, { display: 'CSS', value: 'css' }, { display: 'C/C++', value: 'c_cpp' }, { display: 'HTML', value: 'html' }, { display: 'GLSL', value: 'glsl' }].sort(function (a, b) {
+    return strComp(a.display, b.display);
+  }),
   change: function change(value) {
     try {
       session.setMode('ace/mode/' + value);

@@ -65,7 +65,7 @@ const updateGist = (req, res) => {
   // Edit the gist
   return github.gists.edit(data, (err) => {
     if (err) {
-      res.json({ error: 'Failed to save the gist :(' });
+      res.status(400).json({ error: 'Failed to save the gist :(' });
     } else {
       res.json({ info: 'Successfully saved gist.' });
     }
@@ -77,6 +77,10 @@ const createGist = (req, res) => {
   const githubToken = req.session.account.githubToken;
   const name = req.body.name;
   const text = req.body.text;
+
+  if (!text) {
+    return res.status(400).json({ error: 'Cannot create an empty gist.' });
+  }
 
   // Create the files object
   const files = {};
@@ -100,7 +104,7 @@ const createGist = (req, res) => {
   // Attempt to create the gist
   github.gists.create(data, (err, response) => {
     if (err) {
-      res.json({ error: 'Failed to create the gist :(' });
+      res.status(400).json({ error: 'Failed to create the gist :(' });
     } else {
       res.json(response);
     }

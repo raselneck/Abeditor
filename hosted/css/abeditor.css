@@ -90,3 +90,7 @@ input[type="hidden"] + button {
 .gist-file + .gist-file {
   border-top: 1px solid lightgrey;
 }
+
+#file-name input, #file-name input:hover {
+  color: black;
+}
