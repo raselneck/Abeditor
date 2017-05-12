@@ -25,6 +25,8 @@ $(document).ready(() => {
 
   editor.setShowPrintMargin(false);
 
+  initializeGistDialog();
+
   let filenameRoot = document.querySelector('#file-name');
   filename = {
     displayEl: filenameRoot.children[0],

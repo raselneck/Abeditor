@@ -62,6 +62,7 @@ const saveCurrentGistFile = () => {
       // Create the gist
       sendRequest('POST', '/create-gist', data, (response) => {
         if (response.status === 200) {
+          console.log(response);
           currentGist = response.data.data;
           currentGistFile = currentGist.files[fileName];
           displayInfo('Successfully created new gist.');

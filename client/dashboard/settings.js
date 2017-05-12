@@ -104,10 +104,10 @@ Setting.config = [
   } },
 
   { name: 'newFile',   type: Setting.types.misc,   display: 'New',           change: () => window.open('/edit') }, // adjust to open new instance
-  { name: 'openFile',  type: Setting.types.misc,   display: 'Open',          change: openGistDialog },
+  { name: 'openFile',  type: Setting.types.misc,   display: 'Open',          change: () => openGistDialog() },
   { name: 'saveFile',  type: Setting.types.misc,   display: 'Save',
     change: () => saveAs(new Blob([sessionDoc.getValue()], { type: "text/plain;charset=utf-8" }), Setting.map.fileName.value) }, // update with filename
-  { name: 'saveGist',  type: Setting.types.misc,   display: 'Save Gist',     change: saveCurrentGistFile},
+  { name: 'saveGist',  type: Setting.types.misc,   display: 'Save Gist',     change: () => saveCurrentGistFile() },
 
   { name: 'theme',     type: Setting.types.dropdown,   display: 'Theme', def: 'monokai', 
     options: [ 

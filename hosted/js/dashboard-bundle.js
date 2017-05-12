@@ -30,6 +30,8 @@ $(document).ready(function () {
 
   editor.setShowPrintMargin(false);
 
+  initializeGistDialog();
+
   var filenameRoot = document.querySelector('#file-name');
   filename = {
     displayEl: filenameRoot.children[0],
@@ -336,11 +338,15 @@ Setting.config = [{ name: 'fileName', type: Setting.types.text, def: "Filename.t
   } }, { name: 'newFile', type: Setting.types.misc, display: 'New', change: function change() {
     return window.open('/edit');
   } }, // adjust to open new instance
-{ name: 'openFile', type: Setting.types.misc, display: 'Open', change: openGistDialog }, { name: 'saveFile', type: Setting.types.misc, display: 'Save',
+{ name: 'openFile', type: Setting.types.misc, display: 'Open', change: function change() {
+    return openGistDialog();
+  } }, { name: 'saveFile', type: Setting.types.misc, display: 'Save',
   change: function change() {
     return saveAs(new Blob([sessionDoc.getValue()], { type: "text/plain;charset=utf-8" }), Setting.map.fileName.value);
   } }, // update with filename
-{ name: 'saveGist', type: Setting.types.misc, display: 'Save Gist', change: saveCurrentGistFile }, { name: 'theme', type: Setting.types.dropdown, display: 'Theme', def: 'monokai',
+{ name: 'saveGist', type: Setting.types.misc, display: 'Save Gist', change: function change() {
+    return saveCurrentGistFile();
+  } }, { name: 'theme', type: Setting.types.dropdown, display: 'Theme', def: 'monokai',
   options: [{ display: 'Monokai', value: 'monokai' }, { display: 'Terminal', value: 'terminal' }, { display: 'X-Code', value: 'xcode' }, { display: 'Chrome', value: 'chrome' }, { display: 'Solarized Dark', value: 'solarized_dark' }, { display: 'Solarized Light', value: 'solarized_light' }],
   change: function change(value) {
     try {
@@ -432,6 +438,7 @@ var saveCurrentGistFile = function saveCurrentGistFile() {
       // Create the gist
       sendRequest('POST', '/create-gist', _data, function (response) {
         if (response.status === 200) {
+          console.log(response);
           currentGist = response.data.data;
           currentGistFile = currentGist.files[fileName];
           displayInfo('Successfully created new gist.');
